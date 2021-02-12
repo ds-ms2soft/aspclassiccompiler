@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VBScriptTest", "VBScriptTes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VBSC", "VBSC\VBSC.csproj", "{556BAE6E-AA67-48C7-ACD6-1AB0AA930197}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAppRunner", "DevAppRunner\DevAppRunner.csproj", "{0C09BC73-9667-4F16-85BE-616BE369920E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,10 @@ Global
 		{556BAE6E-AA67-48C7-ACD6-1AB0AA930197}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{556BAE6E-AA67-48C7-ACD6-1AB0AA930197}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{556BAE6E-AA67-48C7-ACD6-1AB0AA930197}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C09BC73-9667-4F16-85BE-616BE369920E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C09BC73-9667-4F16-85BE-616BE369920E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C09BC73-9667-4F16-85BE-616BE369920E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C09BC73-9667-4F16-85BE-616BE369920E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

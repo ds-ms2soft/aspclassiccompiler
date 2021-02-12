@@ -43,7 +43,7 @@ namespace Dlrsoft.VBScript.Runtime
 
         public int Number { get { return _number; } }
         public string Description { get { return base.Message; } }
-        public string Source { get { return _source; } }
+        public new string Source { get { return _source; } }
         public string HelpContext { get { return _helpContext; } }
         public string HelpFile { get { return _helpFile; } }
     }

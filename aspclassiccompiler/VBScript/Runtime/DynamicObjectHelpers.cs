@@ -44,17 +44,17 @@ namespace Dlrsoft.VBScript.Runtime
         }
 
         static private Dictionary<string,
-                                  CallSite<Func<CallSite, object, object>>>
+                                  CallSite<Microsoft.Scripting.Utils.Func<CallSite, object, object>>>
             _getSites = new Dictionary<string,
-                                       CallSite<Func<CallSite, object, object>>>();
+                                       CallSite<Microsoft.Scripting.Utils.Func<CallSite, object, object>>>();
 
         internal static object GetMember(IDynamicMetaObjectProvider o,
                                          string name)
         {
-            CallSite<Func<CallSite, object, object>> site;
+            CallSite<Microsoft.Scripting.Utils.Func<CallSite, object, object>> site;
             if (!DynamicObjectHelpers._getSites.TryGetValue(name, out site))
             {
-                site = CallSite<Func<CallSite, object, object>>
+                site = CallSite<Microsoft.Scripting.Utils.Func<CallSite, object, object>>
                                .Create(new DoHelpersGetMemberBinder(name));
                 DynamicObjectHelpers._getSites[name] = site;
             }
@@ -62,17 +62,17 @@ namespace Dlrsoft.VBScript.Runtime
         }
 
         static private Dictionary<string,
-                                  CallSite<Action<CallSite, object, object>>>
+                                  CallSite<Microsoft.Scripting.Utils.Action<CallSite, object, object>>>
             _setSites = new Dictionary<string,
-                                       CallSite<Action<CallSite, object, object>>>();
+                                       CallSite<Microsoft.Scripting.Utils.Action<CallSite, object, object>>>();
 
         internal static void SetMember(IDynamicMetaObjectProvider o, string name,
                                        object value)
         {
-            CallSite<Action<CallSite, object, object>> site;
+            CallSite<Microsoft.Scripting.Utils.Action<CallSite, object, object>> site;
             if (!DynamicObjectHelpers._setSites.TryGetValue(name, out site))
             {
-                site = CallSite<Action<CallSite, object, object>>
+                site = CallSite<Microsoft.Scripting.Utils.Action<CallSite, object, object>>
                           .Create(new DoHelpersSetMemberBinder(name));
                 DynamicObjectHelpers._setSites[name] = site;
             }

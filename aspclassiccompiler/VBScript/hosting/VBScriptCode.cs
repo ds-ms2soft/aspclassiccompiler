@@ -22,11 +22,10 @@ namespace Dlrsoft.VBScript.Hosting
     {
         //private readonly Expression<Action<VBScript, IDynamicMetaObjectProvider>> _lambda;
         private readonly VBScript _vbscript;
-        private Action<VBScript, IDynamicMetaObjectProvider> _compiledLambda;
+        private Microsoft.Scripting.Utils.Action<VBScript, IDynamicMetaObjectProvider> _compiledLambda;
 
         public VBScriptCode(
-             VBScript vbscript,
-             Action<VBScript, IDynamicMetaObjectProvider> lambda,
+             VBScript vbscript, Microsoft.Scripting.Utils.Action<VBScript, IDynamicMetaObjectProvider> lambda,
              SourceUnit sourceUnit)
              : base(sourceUnit) {
              _compiledLambda = lambda;

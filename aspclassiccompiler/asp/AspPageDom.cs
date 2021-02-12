@@ -7,16 +7,16 @@
 /////////////////////////////////////////////////////////////////////////////
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
-using System.IO;
-using Microsoft.Scripting;
 using Dlrsoft.VBScript.Compiler;
+using Microsoft.Scripting;
 
 namespace Dlrsoft.Asp
 {
-    public class AspPageDom
+	public class AspPageDom
     {
         private string _pagePath;
         private string _virtualRootPath;
@@ -56,6 +56,8 @@ namespace Dlrsoft.Asp
             processPage(pagePath, aspFile, virtualRootPath);
         }
 
+        public readonly Dictionary<string, string> IncludeFileSubstitutions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
         /// <summary>
         /// Process the page in aspFile string. Pagepath is only used for getting included files.
         /// </summary>
@@ -82,7 +84,7 @@ namespace Dlrsoft.Asp
                 switch (value.Substring(0, 3))
                 {
                     case "<!-": //Include
-                        processInclude(pagePath, contents.ToLower());
+                        processInclude(pagePath, contents.ToLower(), SourceUtil.GetSpan(lineRanges, m.Index, p1 - 1), value);
                         break;
                     case "<%@": //Declaration. Ignore
                         break;
@@ -92,11 +94,35 @@ namespace Dlrsoft.Asp
                         {
                             if (temp[0] == '=') //Expression
                             {
-                                contents = string.Format("response.Write({0})", temp.Substring(1).Trim());
+	                            contents = "@Html.Raw(" + temp.Substring(1).Trim() + ")"; //string.Format("response.Write({0})", temp.Substring(1).Trim());
                                 appendBlock(pagePath, SourceUtil.GetSpan(lineRanges, m.Index, p1 - 1), contents, 1);
                             }
                             else
                             {
+	                            if (ProcessCode != null)
+	                            {
+		                            contents = ProcessCode(contents);
+	                            }
+
+	                            var preceeding = m.Index> 0 ? aspFile.Substring(m.Index - 1, 1) : " ";
+	                            var codePrefix = (Regex.IsMatch(preceeding, @"\s|[>='\""]") ? "" : " ")
+	                                             + "@Code";
+
+	                            if (!contents.StartsWith(" "))
+	                            {
+		                            codePrefix += " ";
+	                            }
+	                            contents = codePrefix + contents;
+
+	                            if (!contents.EndsWith("\n") && !contents.EndsWith(" "))
+	                            {
+		                            contents += " ";
+	                            }
+
+	                            contents += "End Code";
+	                            var nextChar = m.Index + m.Length;
+	                            var following = nextChar < aspFile.Length ? aspFile.Substring(m.Index + m.Length, 1) : " ";
+	                            contents += (Regex.IsMatch(following, @"\s|['\""&<]") ? "" : " ");
                                 appendBlock(pagePath, SourceUtil.GetSpan(lineRanges, m.Index, p1 - 1), contents, SourceUtil.GetLineCount(contents));
                             }
                         }
@@ -108,13 +134,16 @@ namespace Dlrsoft.Asp
                 appendBlock(pagePath, SourceUtil.GetSpan(lineRanges, p1, p2 - 1), GetListeral(aspFile, p1, p2), 1);
         }
 
+        public Func<string, string> ProcessCode { get; set; }
+
         private string GetListeral(string aspFile, int p1, int p2)
         {
-            _literals.Add(aspFile.Substring(p1, p2 - p1));
-            return string.Format("response.Write(literals({0}))", _literals.Count - 1);
+	        var literal = aspFile.Substring(p1, p2 - p1);
+            //_literals.Add(aspFile.Substring(p1, p2 - p1));
+            return literal; //string.Format("response.Write(literals({0}))", _literals.Count - 1);
         }
 
-        private void processInclude(string parent, string spec)
+        private void processInclude(string parent, string spec, SourceSpan includeSpan, string fullInclude)
         {
             string filePath = null;
             int x = spec.IndexOf('=');
@@ -150,7 +179,15 @@ namespace Dlrsoft.Asp
                     throw new ArgumentException("Invalid include spec:" + spec);
             }
 
-            processPage(filePath);
+            if (IncludeFileSubstitutions.TryGetValue(Path.GetFileName(filePath), out var content)) //TODO: handle root relative paths?
+            {
+	            appendBlock(parent, includeSpan, content, 1);
+            }
+            else
+            {
+	            appendBlock(parent, includeSpan, fullInclude, 1);
+	            //processPage(filePath);
+            }
         }
 
         private void appendBlock(string filepath, SourceSpan span, string contents, int lines)
@@ -159,7 +196,7 @@ namespace Dlrsoft.Asp
             int startIndex = _sb.Length;
             _curLine += lines;
             int endLine = _curLine;
-            _sb.AppendLine(contents);
+            _sb.Append(contents);
             int endIndex = _sb.Length;
 
             int startColumn = 1;

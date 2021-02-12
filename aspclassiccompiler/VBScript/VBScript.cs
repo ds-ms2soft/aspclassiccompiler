@@ -112,7 +112,7 @@ namespace Dlrsoft.VBScript
             }
         }
 
-        internal Action<VBScript, IDynamicMetaObjectProvider>
+        internal Microsoft.Scripting.Utils.Action<VBScript, IDynamicMetaObjectProvider>
                  ParseFileToLambda(string filename, TextReader reader) {
             var scanner = new VB.Scanner(reader);
             var errorTable = new List<VB.SyntaxError>();
@@ -233,7 +233,7 @@ namespace Dlrsoft.VBScript
             //    body.Insert(0, registerRuntimeVariables);
             //}
 
-            var moduleFun = Expression.Lambda<Action<VBScript, IDynamicMetaObjectProvider>>(
+            var moduleFun = Expression.Lambda<Microsoft.Scripting.Utils.Action<VBScript, IDynamicMetaObjectProvider>>(
                 Expression.Block(
                     scope.Names.Values,
                     body),
@@ -261,7 +261,7 @@ namespace Dlrsoft.VBScript
             d(this, moduleEO);
         }
 
-        internal Action<VBScript, IDynamicMetaObjectProvider>
+        internal Microsoft.Scripting.Utils.Action<VBScript, IDynamicMetaObjectProvider>
                  ParseExprToLambda(TextReader reader) {
             var scanner = new VB.Scanner(reader);
             var errorTable = new List<VB.SyntaxError>();
@@ -291,7 +291,7 @@ namespace Dlrsoft.VBScript
                 throw new VBScriptCompilerException(scope.Errors);
             }
 
-            var moduleFun = Expression.Lambda<Action<VBScript, IDynamicMetaObjectProvider>>(
+            var moduleFun = Expression.Lambda<Microsoft.Scripting.Utils.Action<VBScript, IDynamicMetaObjectProvider>>(
                 Expression.Block(body),
                 scope.RuntimeExpr,
                 scope.ModuleExpr
