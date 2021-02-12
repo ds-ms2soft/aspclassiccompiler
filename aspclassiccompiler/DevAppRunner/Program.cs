@@ -37,7 +37,7 @@ namespace DevAppRunner
 			codeBlock = Regex.Replace(codeBlock, @"response\.write\s*(?<content>.*?)(?=\s*\r?\n)", "@Html.Raw($1)",
 				RegexOptions.IgnoreCase);
 			//TODO: Maybe translate "SET variable = nothing" to some sort of conditional dispose?
-
+			//TODO: detected a comment that prevents "End Code" from working and insert a line break: @Code end if 'DisplaySection("notes") End Code
 			return codeBlock;
 		}
 	}
