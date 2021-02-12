@@ -31,7 +31,10 @@ namespace DevAppRunner
 			//Remove "SET" keyword.
 			codeBlock = Regex.Replace(codeBlock, @"(?<=[\s\n\t\r]+|^)set\s+(?=[a-zA-Z0-9]+\s*=)", "", RegexOptions.IgnoreCase);
 			//Replace Response.Write with @Html.Raw NOTE: this only works for some code, not code within a @Function block
-			codeBlock = Regex.Replace(codeBlock, @"response\.write\s*\(?(?<content>.*?)\)?(?=\s*\r?\n)", "@Html.Raw($1)",
+			codeBlock = Regex.Replace(codeBlock, @"response\.write\s*\((?<content>.*?)\)(?=\s*\r?\n)", "@Html.Raw($1)",
+				RegexOptions.IgnoreCase);
+			//One version for calls that already have surrounding (), and another for ones that don't (could make one fancy balancing regex, but this is easy)
+			codeBlock = Regex.Replace(codeBlock, @"response\.write\s*(?<content>.*?)(?=\s*\r?\n)", "@Html.Raw($1)",
 				RegexOptions.IgnoreCase);
 			//TODO: Maybe translate "SET variable = nothing" to some sort of conditional dispose?
 
