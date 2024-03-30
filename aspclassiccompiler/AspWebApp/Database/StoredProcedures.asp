@@ -1,4 +1,4 @@
-<% 	@ LANGUAGE="VBSCRIPT" 		%>
+<%@ LANGUAGE="VBSCRIPT" 		%>
 <%	Option Explicit				%>
 
 <!--METADATA TYPE="typelib" 
