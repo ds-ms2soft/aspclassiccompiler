@@ -1013,10 +1013,10 @@ ContinueScan:
                 Return New ErrorToken(SyntaxErrorType.InvalidEscapedIdentifier, SpanFrom(Start))
             End If
         Else
-            Const ValidTypeChars As TypeCharacter = _
-                TypeCharacter.DecimalSymbol Or TypeCharacter.DoubleSymbol Or _
-                TypeCharacter.IntegerSymbol Or TypeCharacter.LongSymbol Or _
-                TypeCharacter.SingleSymbol Or TypeCharacter.StringSymbol
+            'Const ValidTypeChars As TypeCharacter = _
+            '    TypeCharacter.DecimalSymbol Or TypeCharacter.DoubleSymbol Or _
+            '    TypeCharacter.IntegerSymbol Or TypeCharacter.LongSymbol Or _
+            '    TypeCharacter.SingleSymbol Or TypeCharacter.StringSymbol
             Type = IdentifierToken.TokenTypeFromString(Identifier, _Version, False)
 
             If Type = TokenType.[REM] Then
@@ -1127,7 +1127,7 @@ ContinueScan:
 
     Private Function EatWhitespace() As Boolean
         Dim c As Char = PeekChar()
-
+	    EatWhitespace = false
         While c = ChrW(9) OrElse Char.GetUnicodeCategory(c) = UnicodeCategory.SpaceSeparator
             ReadChar()
             EatWhitespace = True

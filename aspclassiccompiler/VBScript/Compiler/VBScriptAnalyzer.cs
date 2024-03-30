@@ -1,30 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using VB = Dlrsoft.VBScript.Parser;
-using Microsoft.Scripting.Runtime;
-
-using System.Dynamic;
+﻿using VB = Dlrsoft.VBScript.Parser;
 #if USE35
 using Microsoft.Scripting.Ast;
 #else
 using System.Linq.Expressions;
 #endif
 
-using Microsoft.Scripting.Utils;
-using System.Reflection;
-using System.IO;
-using Dlrsoft.VBScript.Binders;
-using Dlrsoft.VBScript.Compiler;
-using Dlrsoft.VBScript.Runtime;
 using Debug = System.Diagnostics.Debug;
 
 namespace Dlrsoft.VBScript.Compiler
 {
-    /// <summary>
-    /// The analysis phase. We don't do much except for generating the global functions, constants and variables table
-    /// </summary>
-    internal class VBScriptAnalyzer
+	/// <summary>
+	/// The analysis phase. We don't do much except for generating the global functions, constants and variables table
+	/// </summary>
+	internal class VBScriptAnalyzer
     {
         public static void AnalyzeFile(Dlrsoft.VBScript.Parser.ScriptBlock block, AnalysisScope scope)
         {
@@ -68,15 +56,15 @@ namespace Dlrsoft.VBScript.Compiler
 
         private static void AnalyzeDeclarationExpr(VB.LocalDeclarationStatement stmt, AnalysisScope scope)
         {
-            bool isConst = false;
+            //bool isConst = false;
 
-            if (stmt.Modifiers != null)
-            {
-                if (stmt.Modifiers.ModifierTypes == VB.ModifierTypes.Const)
-                {
-                    isConst = true;
-                }
-            }
+            //if (stmt.Modifiers != null)
+            //{
+            //    if (stmt.Modifiers.ModifierTypes == VB.ModifierTypes.Const)
+            //    {
+            //        isConst = true;
+            //    }
+            //}
 
             foreach (VB.VariableDeclarator d in stmt.VariableDeclarators)
             {

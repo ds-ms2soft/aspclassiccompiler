@@ -133,6 +133,7 @@ Public Class TreeXmlSerializer
 
             Case Else
                 Debug.Assert(False, "Unexpected!")
+                Throw new NotSupportedException("Unknown OperatorType")
         End Select
     End Function
 
@@ -218,6 +219,7 @@ Public Class TreeXmlSerializer
 
             Case Else
                 Debug.Assert(False, "Unexpected!")
+                throw new NotSupportedException("Unknown block type")
         End Select
     End Function
 

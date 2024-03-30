@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Dlrsoft.VBScript.Runtime
 {
-    public class VBScriptRuntimeException : Exception
+	public class VBScriptRuntimeException : Exception
     {
         private int _number;
         private string _source = string.Empty;
@@ -43,7 +41,7 @@ namespace Dlrsoft.VBScript.Runtime
 
         public int Number { get { return _number; } }
         public string Description { get { return base.Message; } }
-        public string Source { get { return _source; } }
+        public new string Source { get { return _source; } }
         public string HelpContext { get { return _helpContext; } }
         public string HelpFile { get { return _helpFile; } }
     }

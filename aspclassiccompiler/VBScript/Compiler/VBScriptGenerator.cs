@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using VB = Dlrsoft.VBScript.Parser;
 using Dlrsoft.VBScript.Runtime;
 using Microsoft.Scripting;
@@ -17,7 +16,7 @@ using System.Collections;
 
 namespace Dlrsoft.VBScript.Compiler
 {
-    internal static class VBScriptGenerator
+	internal static class VBScriptGenerator
     {
         private static Set<string> _builtinFunctions;
         private static Set<string> _builtinConstants;
@@ -324,15 +323,15 @@ namespace Dlrsoft.VBScript.Compiler
         {
             List<Expression> expressions = new List<Expression>();
 
-            bool isConst = false;
+            //bool isConst = false;
 
-            if (stmt.Modifiers != null)
-            {
-                if (stmt.Modifiers.ModifierTypes == VB.ModifierTypes.Const)
-                {
-                    isConst = true;
-                }
-            }
+            //if (stmt.Modifiers != null)
+            //{
+            //    if (stmt.Modifiers.ModifierTypes == VB.ModifierTypes.Const)
+            //    {
+            //        isConst = true;
+            //    }
+            //}
 
             foreach (VB.VariableDeclarator d in stmt.VariableDeclarators)
             {

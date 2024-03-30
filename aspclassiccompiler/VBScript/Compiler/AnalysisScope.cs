@@ -1,27 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using Microsoft.Scripting.Runtime;
-
-using System.Dynamic;
 #if USE35
 using Microsoft.Scripting.Ast;
 #else
 using System.Linq.Expressions;
 #endif
-using Microsoft.Scripting.Utils;
 
 namespace Dlrsoft.VBScript.Compiler
 {
-    // AnalysisScope holds identifier information so that we can do name binding
-    // during analysis.  It manages a map from names to ParameterExprs so ET
-    // definition locations and reference locations can alias the same variable.
-    //
-    // These chain from inner most BlockExprs, through LambdaExprs, to the root
-    // which models a file or top-level expression.  The root has non-None
-    // ModuleExpr and RuntimeExpr, which are ParameterExprs.
-    //
-    internal class AnalysisScope
+	// AnalysisScope holds identifier information so that we can do name binding
+	// during analysis.  It manages a map from names to ParameterExprs so ET
+	// definition locations and reference locations can alias the same variable.
+	//
+	// These chain from inner most BlockExprs, through LambdaExprs, to the root
+	// which models a file or top-level expression.  The root has non-None
+	// ModuleExpr and RuntimeExpr, which are ParameterExprs.
+	//
+	internal class AnalysisScope
     {
         private AnalysisScope _parent;
         private string _name;
@@ -29,7 +24,7 @@ namespace Dlrsoft.VBScript.Compiler
         private VBScript _runtime;
         private ParameterExpression _runtimeParam;
         private ParameterExpression _moduleParam;
-        private ParameterExpression _traceParam;
+        //private ParameterExpression _traceParam;
         private ISourceMapper _mapper;
         // Need IsLambda when support return to find tightest closing fun.
         private bool _isLambda = false;

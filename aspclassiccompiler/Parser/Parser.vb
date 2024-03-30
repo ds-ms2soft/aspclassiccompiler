@@ -826,6 +826,7 @@ Public NotInheritable Class Parser
 
             Case Else
                 Debug.Assert(False, "Unexpected.")
+                Throw new NotSupportedException("Unknown TreeType.")
         End Select
     End Function
 
@@ -5897,16 +5898,16 @@ HaveStatement:
     Private Function ParseScriptFile() As ScriptBlock
         Dim Statements As List(Of Statement) = New List(Of Statement)()
         Dim ColonLocations As List(Of Location) = New List(Of Location)()
-        Dim Terminator As Token
+        Dim Terminator As Token = Nothing
         Dim Start As Token
         Dim StatementsEnd As Location
-        Dim BlockTerminated As Boolean = False
+        'Dim BlockTerminated As Boolean = False
 
         Start = Peek()
         StatementsEnd = Start.Span.Finish
 
         While Peek().Type <> TokenType.EndOfStream
-            Dim PreviousTerminator As Token = Terminator
+            'Dim PreviousTerminator As Token = Terminator
             Dim Statement As Statement
 
             Statement = ParseStatementOrDeclaration(Terminator)

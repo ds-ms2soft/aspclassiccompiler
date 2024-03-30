@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
 using System.Threading;
 #if USE35
@@ -11,7 +9,7 @@ using System.Linq.Expressions;
 
 namespace Dlrsoft.VBScript.Runtime
 {
-    public class HelperFunctions
+	public class HelperFunctions
     {
         public static object GetDefaultPropertyValue(object target)
         {
@@ -291,7 +289,7 @@ namespace Dlrsoft.VBScript.Runtime
                             return left == right;
                         }
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         return false;
                     }
@@ -327,7 +325,7 @@ namespace Dlrsoft.VBScript.Runtime
                             return left != right;
                         }
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         return true;
                     }
@@ -457,7 +455,6 @@ namespace Dlrsoft.VBScript.Runtime
                     {
                         return (bool)BuiltInFunctions.CBool(left) && (bool)BuiltInFunctions.CBool(right);
                     }
-                    break;
                 case ExpressionType.Or:
                     if (targetType == typeof(bool))
                     {
@@ -475,7 +472,6 @@ namespace Dlrsoft.VBScript.Runtime
                     {
                         return (bool)BuiltInFunctions.CBool(left) || (bool)BuiltInFunctions.CBool(right);
                     }
-                    break;
             }
             throw new ArgumentException(string.Format("Operation {0} between {1} and {2} is not implemeted.", op, ltype.Name, rtype.Name));
         }
