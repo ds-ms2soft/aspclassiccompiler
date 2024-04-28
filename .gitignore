@@ -16,3 +16,4 @@ _[Ss]cripts
 *.dot[Cc]over
 **/.vs/**
 /aspclassiccompiler/AspWebApp/components/MyTextFile.txt
+/aspclassiccompiler/MvcTestApp/Temp/MyTextFile.txt
