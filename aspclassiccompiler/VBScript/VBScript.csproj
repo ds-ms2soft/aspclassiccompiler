@@ -136,8 +136,8 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Parser\Parser.vbproj">
-      <Project>{57A0B340-BDA4-4DE3-B449-52B8C51D84B8}</Project>
+    <ProjectReference Include="..\Parser\Parser.csproj">
+      <Project>{E584322B-71FC-0212-3611-98C6A78AB018}</Project>
       <Name>Parser.VS2013</Name>
     </ProjectReference>
   </ItemGroup>

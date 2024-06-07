@@ -1,0 +1,450 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="12.0">
+  <PropertyGroup>
+    <ProjectType>Local</ProjectType>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{E584322B-71FC-0212-3611-98C6A78AB018}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ApplicationIcon>
+    </ApplicationIcon>
+    <AssemblyKeyContainerName>
+    </AssemblyKeyContainerName>
+    <AssemblyName>Dlrsoft.VBParser</AssemblyName>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyMode>None</AssemblyOriginatorKeyMode>
+    <DefaultClientScript>JScript</DefaultClientScript>
+    <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
+    <DefaultTargetSchema>IE50</DefaultTargetSchema>
+    <DelaySign>false</DelaySign>
+    <OutputType>Library</OutputType>
+    <OptionCompare>Binary</OptionCompare>
+    <OptionExplicit>On</OptionExplicit>
+    <OptionStrict>On</OptionStrict>
+    <RootNamespace>Dlrsoft.VBScript.Parser</RootNamespace>
+    <StartupObject>
+    </StartupObject>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
+    <DefaultItemExcludes>$(DefaultItemExcludes);$(ProjectDir)**\*.vb</DefaultItemExcludes>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <DocumentationFile>bin\Debug\Dlrsoft.VBParser.xml</DocumentationFile>
+    <BaseAddress>285212672</BaseAddress>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <RemoveIntegerChecks>false</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>1</WarningLevel>
+    <NoWarn>42016,42017,42018,42019,42032</NoWarn>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <CodeAnalysisRules>
+    </CodeAnalysisRules>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>..\bin\Release40\</OutputPath>
+    <DocumentationFile>..\bin\Release40\Dlrsoft.VBParser.xml</DocumentationFile>
+    <BaseAddress>285212672</BaseAddress>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>TRACE</DefineConstants>
+    <DebugSymbols>false</DebugSymbols>
+    <Optimize>true</Optimize>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <RemoveIntegerChecks>false</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>1</WarningLevel>
+    <NoWarn>42016,42017,42018,42019,42032</NoWarn>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="System">
+      <Name>System</Name>
+    </Reference>
+    <Reference Include="System.XML" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="System" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Collections.Generic" />
+    <Import Include="System.Collections.ObjectModel" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="System.IO" />
+    <Import Include="System.Text" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ExternalChecksum.cs" />
+    <Compile Include="ExternalLineMapping.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IntegerBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Location.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Parser.cs" />
+    <Compile Include="Scanner.cs" />
+    <Compile Include="Serializers\ErrorXmlSerializer.cs" />
+    <Compile Include="Serializers\TokenXmlSerializer.cs" />
+    <Compile Include="Serializers\TreeXmlSerializer.cs" />
+    <Compile Include="Tokens\UnsignedIntegerLiteralToken.cs" />
+    <Compile Include="Trees\Attributes\AttributeBlockCollection.cs" />
+    <Compile Include="Trees\Collections\TreeCollection.cs" />
+    <Compile Include="Trees\Declarations\AttributeDeclaration.cs" />
+    <Compile Include="Trees\Declarations\BlockDeclaration.cs" />
+    <Compile Include="Trees\Expressions\GenericQualifiedExpression.cs" />
+    <Compile Include="Trees\Expressions\GlobalExpression.cs" />
+    <Compile Include="Trees\Expressions\TryCastExpression.cs" />
+    <Compile Include="Trees\Files\ScriptBlock.cs" />
+    <Compile Include="Trees\Members\Charset.cs" />
+    <Compile Include="Trees\Members\AddHandlerAccessorDeclaration.cs" />
+    <Compile Include="Trees\Members\RemoveHandlerAccessorDeclaration.cs" />
+    <Compile Include="Trees\Members\RaiseEventAccessorDeclaration.cs" />
+    <Compile Include="Trees\Members\CustomEventDeclaration.cs" />
+    <Compile Include="Trees\Members\OperatorDeclaration.cs" />
+    <Compile Include="Trees\Names\SpecialNameTypes.cs" />
+    <Compile Include="Trees\Statements\ContinueStatement.cs" />
+    <Compile Include="Trees\Statements\UsingBlockStatement.cs" />
+    <Compile Include="Trees\Types\ClassDeclaration.cs" />
+    <Compile Include="Trees\Members\ConstructorDeclaration.cs" />
+    <Compile Include="Trees\Types\GenericBlockDeclaration.cs" />
+    <Compile Include="Trees\Declarations\Declaration.cs" />
+    <Compile Include="Trees\Declarations\DeclarationCollection.cs" />
+    <Compile Include="Trees\Types\DelegateDeclaration.cs" />
+    <Compile Include="Trees\Types\DelegateFunctionDeclaration.cs" />
+    <Compile Include="Trees\Types\DelegateSubDeclaration.cs" />
+    <Compile Include="Trees\Declarations\EmptyDeclaration.cs" />
+    <Compile Include="Trees\Declarations\EndBlockDeclaration.cs" />
+    <Compile Include="Trees\Types\EnumDeclaration.cs" />
+    <Compile Include="Trees\Members\EnumValueDeclaration.cs" />
+    <Compile Include="Trees\Members\EventDeclaration.cs" />
+    <Compile Include="Trees\Members\ExternalDeclaration.cs" />
+    <Compile Include="Trees\Members\ExternalFunctionDeclaration.cs" />
+    <Compile Include="Trees\Members\ExternalSubDeclaration.cs" />
+    <Compile Include="Trees\Members\FunctionDeclaration.cs" />
+    <Compile Include="Trees\Members\GetAccessorDeclaration.cs" />
+    <Compile Include="Trees\Types\ImplementsDeclaration.cs" />
+    <Compile Include="Trees\Files\ImportsDeclaration.cs" />
+    <Compile Include="Trees\Types\InheritsDeclaration.cs" />
+    <Compile Include="Trees\Types\InterfaceDeclaration.cs" />
+    <Compile Include="Trees\Members\MethodDeclaration.cs" />
+    <Compile Include="Trees\Declarations\ModifiedDeclaration.cs" />
+    <Compile Include="Trees\Types\ModuleDeclaration.cs" />
+    <Compile Include="Trees\Files\NamespaceDeclaration.cs" />
+    <Compile Include="Trees\Files\OptionDeclaration.cs" />
+    <Compile Include="Trees\Files\OptionType.cs" />
+    <Compile Include="Trees\Members\PropertyDeclaration.cs" />
+    <Compile Include="Trees\Members\SetAccessorDeclaration.cs" />
+    <Compile Include="Trees\Members\SignatureDeclaration.cs" />
+    <Compile Include="Trees\Types\StructureDeclaration.cs" />
+    <Compile Include="Trees\Members\SubDeclaration.cs" />
+    <Compile Include="Trees\Members\VariableListDeclaration.cs" />
+    <Compile Include="Trees\Expressions\AddressOfExpression.cs" />
+    <Compile Include="Trees\Expressions\BinaryOperatorExpression.cs" />
+    <Compile Include="Trees\Expressions\BooleanLiteralExpression.cs" />
+    <Compile Include="Trees\Expressions\CallOrIndexExpression.cs" />
+    <Compile Include="Trees\Expressions\CastTypeExpression.cs" />
+    <Compile Include="Trees\Expressions\CharacterLiteralExpression.cs" />
+    <Compile Include="Trees\Expressions\CTypeExpression.cs" />
+    <Compile Include="Trees\Expressions\DateLiteralExpression.cs" />
+    <Compile Include="Trees\Expressions\DecimalLiteralExpression.cs" />
+    <Compile Include="Trees\Expressions\DictionaryLookupExpression.cs" />
+    <Compile Include="Trees\Expressions\DirectCastExpression.cs" />
+    <Compile Include="Trees\Expressions\QualifiedExpression.cs" />
+    <Compile Include="Trees\Expressions\Expression.cs" />
+    <Compile Include="Trees\Expressions\ExpressionCollection.cs" />
+    <Compile Include="Trees\Expressions\FloatingPointLiteralExpression.cs" />
+    <Compile Include="Trees\Expressions\GetTypeExpression.cs" />
+    <Compile Include="Trees\Expressions\InstanceExpression.cs" />
+    <Compile Include="Trees\Expressions\InstanceType.cs" />
+    <Compile Include="Trees\Expressions\IntegerLiteralExpression.cs" />
+    <Compile Include="Trees\Expressions\IntrinsicCastExpression.cs" />
+    <Compile Include="Trees\Expressions\LiteralExpression.cs" />
+    <Compile Include="Trees\Expressions\NewAggregateExpression.cs" />
+    <Compile Include="Trees\Expressions\NewExpression.cs" />
+    <Compile Include="Trees\Expressions\NothingExpression.cs" />
+    <Compile Include="Trees\Expressions\OperatorType.cs" />
+    <Compile Include="Trees\Expressions\ParentheticalExpression.cs" />
+    <Compile Include="Trees\Expressions\SimpleNameExpression.cs" />
+    <Compile Include="Trees\Expressions\StringLiteralExpression.cs" />
+    <Compile Include="Trees\Expressions\TypeOfExpression.cs" />
+    <Compile Include="Trees\Expressions\TypeReferenceExpression.cs" />
+    <Compile Include="Trees\Expressions\UnaryExpression.cs" />
+    <Compile Include="Trees\Expressions\UnaryOperatorExpression.cs" />
+    <Compile Include="Trees\Files\File.cs" />
+    <Compile Include="Trees\Imports\AliasImport.cs" />
+    <Compile Include="Trees\Imports\Import.cs" />
+    <Compile Include="Trees\Imports\ImportCollection.cs" />
+    <Compile Include="Trees\Imports\NameImport.cs" />
+    <Compile Include="Trees\Initializers\AggregateInitializer.cs" />
+    <Compile Include="Trees\Initializers\ExpressionInitializer.cs" />
+    <Compile Include="Trees\Initializers\Initializer.cs" />
+    <Compile Include="Trees\Initializers\InitializerCollection.cs" />
+    <Compile Include="Trees\Modifiers\Modifier.cs" />
+    <Compile Include="Trees\Modifiers\ModifierCollection.cs" />
+    <Compile Include="Trees\Modifiers\ModifierTypes.cs" />
+    <Compile Include="Trees\Names\SpecialName.cs" />
+    <Compile Include="Trees\Names\Name.cs" />
+    <Compile Include="Trees\Names\NameCollection.cs" />
+    <Compile Include="Trees\Names\QualifiedName.cs" />
+    <Compile Include="Trees\Names\SimpleName.cs" />
+    <Compile Include="Trees\Names\VariableName.cs" />
+    <Compile Include="Trees\Names\VariableNameCollection.cs" />
+    <Compile Include="Trees\Parameters\Parameter.cs" />
+    <Compile Include="Trees\Parameters\ParameterCollection.cs" />
+    <Compile Include="Trees\Statements\AddHandlerStatement.cs" />
+    <Compile Include="Trees\Statements\AssignmentStatement.cs" />
+    <Compile Include="Trees\Statements\BlockStatement.cs" />
+    <Compile Include="Trees\Statements\CallStatement.cs" />
+    <Compile Include="Trees\Statements\CaseBlockStatement.cs" />
+    <Compile Include="Trees\Statements\CaseElseBlockStatement.cs" />
+    <Compile Include="Trees\Statements\CaseElseStatement.cs" />
+    <Compile Include="Trees\Statements\CaseStatement.cs" />
+    <Compile Include="Trees\Statements\CatchBlockStatement.cs" />
+    <Compile Include="Trees\Statements\CatchStatement.cs" />
+    <Compile Include="Trees\Statements\CompoundAssignmentStatement.cs" />
+    <Compile Include="Trees\Statements\DoBlockStatement.cs" />
+    <Compile Include="Trees\Statements\ElseBlockStatement.cs" />
+    <Compile Include="Trees\Statements\ElseIfBlockStatement.cs" />
+    <Compile Include="Trees\Statements\ElseIfStatement.cs" />
+    <Compile Include="Trees\Statements\ElseStatement.cs" />
+    <Compile Include="Trees\Statements\EmptyStatement.cs" />
+    <Compile Include="Trees\Statements\EndBlockStatement.cs" />
+    <Compile Include="Trees\Statements\EndStatement.cs" />
+    <Compile Include="Trees\Statements\EraseStatement.cs" />
+    <Compile Include="Trees\Statements\ErrorStatement.cs" />
+    <Compile Include="Trees\Statements\ExitStatement.cs" />
+    <Compile Include="Trees\Statements\ExpressionBlockStatement.cs" />
+    <Compile Include="Trees\Statements\ExpressionStatement.cs" />
+    <Compile Include="Trees\Statements\FinallyBlockStatement.cs" />
+    <Compile Include="Trees\Statements\FinallyStatement.cs" />
+    <Compile Include="Trees\Statements\ForBlockStatement.cs" />
+    <Compile Include="Trees\Statements\ForEachBlockStatement.cs" />
+    <Compile Include="Trees\Statements\GotoStatement.cs" />
+    <Compile Include="Trees\Statements\HandlerStatement.cs" />
+    <Compile Include="Trees\Statements\IfBlockStatement.cs" />
+    <Compile Include="Trees\Statements\LabelReferenceStatement.cs" />
+    <Compile Include="Trees\Statements\LabelStatement.cs" />
+    <Compile Include="Trees\Statements\LineIfStatement.cs" />
+    <Compile Include="Trees\Statements\LocalDeclarationStatement.cs" />
+    <Compile Include="Trees\Statements\LoopStatement.cs" />
+    <Compile Include="Trees\Statements\MidAssignmentStatement.cs" />
+    <Compile Include="Trees\Statements\NextStatement.cs" />
+    <Compile Include="Trees\Statements\OnErrorStatement.cs" />
+    <Compile Include="Trees\Statements\OnErrorType.cs" />
+    <Compile Include="Trees\Statements\RaiseEventStatement.cs" />
+    <Compile Include="Trees\Statements\ReDimStatement.cs" />
+    <Compile Include="Trees\Statements\RemoveHandlerStatement.cs" />
+    <Compile Include="Trees\Statements\ResumeStatement.cs" />
+    <Compile Include="Trees\Statements\ResumeType.cs" />
+    <Compile Include="Trees\Statements\ReturnStatement.cs" />
+    <Compile Include="Trees\Statements\SelectBlockStatement.cs" />
+    <Compile Include="Trees\Statements\Statement.cs" />
+    <Compile Include="Trees\Statements\StatementCollection.cs" />
+    <Compile Include="Trees\Statements\StopStatement.cs" />
+    <Compile Include="Trees\Statements\SyncLockBlockStatement.cs" />
+    <Compile Include="Trees\Statements\ThrowStatement.cs" />
+    <Compile Include="Trees\Statements\TryBlockStatement.cs" />
+    <Compile Include="Trees\Statements\WhileStatement.cs" />
+    <Compile Include="Trees\Statements\WithStatement.cs" />
+    <Compile Include="Trees\TypeParameters\TypeParameter.cs" />
+    <Compile Include="Trees\TypeNames\ArrayTypeName.cs" />
+    <Compile Include="Trees\TypeNames\ConstructedTypeName.cs" />
+    <Compile Include="Trees\TypeNames\IntrinsicTypeName.cs" />
+    <Compile Include="Trees\TypeNames\NamedTypeName.cs" />
+    <Compile Include="Trees\TypeNames\TypeName.cs" />
+    <Compile Include="Trees\TypeNames\TypeNameCollection.cs" />
+    <Compile Include="Trees\TypeNames\TypeArgumentCollection.cs" />
+    <Compile Include="Trees\TypeParameters\TypeConstraintCollection.cs" />
+    <Compile Include="Trees\TypeParameters\TypeParameterCollection.cs" />
+    <Compile Include="Trees\VariableDeclarators\VariableDeclarator.cs" />
+    <Compile Include="Trees\VariableDeclarators\VariableDeclaratorCollection.cs" />
+    <Compile Include="TypeCharacter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SourceRegion.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Span.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SyntaxError.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SyntaxErrorType.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tokens\CharacterLiteralToken.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tokens\CommentToken.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tokens\DateLiteralToken.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tokens\DecimalLiteralToken.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tokens\EndOfStreamToken.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tokens\ErrorToken.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tokens\FloatingPointLiteralToken.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tokens\IdentifierToken.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tokens\IntegerLiteralToken.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tokens\LineTerminatorToken.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tokens\PunctuatorToken.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tokens\StringLiteralToken.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tokens\Token.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tokens\TokenType.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Trees\Arguments\Argument.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Trees\Arguments\ArgumentCollection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Trees\Attributes\Attribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Trees\Attributes\AttributeCollection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Trees\Attributes\AttributeTypes.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Trees\BlockType.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Trees\CaseClauses\CaseClause.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Trees\CaseClauses\CaseClauseCollection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Trees\CaseClauses\ComparisonCaseClause.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Trees\CaseClauses\RangeCaseClause.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Trees\Collections\ColonDelimitedTreeCollection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Trees\Collections\CommaDelimitedTreeCollection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Trees\Comments\Comment.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Trees\IntrinsicType.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Trees\Tree.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Trees\TreeType.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LanguageVersion.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.VisualBasic.PowerPacks.10.0">
+      <Visible>False</Visible>
+      <ProductName>Microsoft Visual Basic PowerPacks 10.0</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualBasic">
+      <Version>10.3.0</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="My Project\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>
