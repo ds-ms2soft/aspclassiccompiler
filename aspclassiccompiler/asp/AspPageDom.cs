@@ -7,16 +7,16 @@
 /////////////////////////////////////////////////////////////////////////////
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
-using System.IO;
-using Microsoft.Scripting;
 using Dlrsoft.VBScript.Compiler;
+using Microsoft.Scripting;
 
 namespace Dlrsoft.Asp
 {
-    public class AspPageDom
+	public class AspPageDom
     {
         private string _pagePath;
         private string _virtualRootPath;
@@ -58,6 +58,9 @@ namespace Dlrsoft.Asp
 
         /// <summary>
         /// Process the page in aspFile string. Pagepath is only used for getting included files.
+        /// DS: After this method completes, the literals and code statements are separated.
+        /// Literals are in a list and replaced with response.write(literal[x]).
+        /// _sb has all of the code statements as unparsed text.
         /// </summary>
         /// <param name="pagePath"></param>
         /// <param name="aspFile"></param>
