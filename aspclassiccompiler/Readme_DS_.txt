@@ -43,10 +43,28 @@ Can I migrate from ADO, maybe with a wrapper interface or helper class?
 need to preserve comments, currently they look striped.
 strip extra blank lines?
 
-
 Real process:
 -Parse everything to find all include files. use a full canonical path to identify them.
 -Transpile all the includes. I need to know they are includes because I'd probably render them differently. Possibly as classes? Or maybe a partial view? That needs discovery.
 -Then transpile all the files, referencing the include files some how
+-Replace MS2.Session with Session.
+-Some include files we'll want to NOP, some will map just to code functions (static usings?)
+ADO mapping:
 
+main use is via a DataConn variable, which is an ADODB.Connection object
+also creates ADODB.Command and ADODB.Recordset objects. We could text replace those with adapter objects.
+
+next steps:
+find out how many include files we have
+categorize the include files
+start making MS2 specific overloads.
+make a proxy for ADODB
+convert a more complex page, find the other bits that are missing.
+copy a bunch of *.asp pages to my machine (or is that bad)?
+what is a good proof of concept? tdetail.asp is the hardest/best.
+
+for an include file:
+make a class that has methods, fields and a render content method.
+Subs that render content need to be converted to return content and callers updated to render it.
+	How do I do that?
 

@@ -54,6 +54,16 @@ namespace Transpiler
 			}
 		}
 
+		public static string Render(this ParameterCollection parameters)
+		{
+			return parameters != null ? String.Join(", ", parameters.Select(parm => parm.Render())) : null;
+		}
+
+		public static string Render(this Parameter parm)
+		{
+			throw new NotImplementedException();
+		}
+
 		public static string Render(this ArgumentCollection args, IdentifierScope scope)
 		 => args != null ? String.Join(", ", args.Select(arg => arg.Render(scope))) : null;
 

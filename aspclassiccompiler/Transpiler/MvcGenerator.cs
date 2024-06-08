@@ -36,9 +36,22 @@ namespace Transpiler
 			_literals = literals;
 			var globalScope = IdentifierScope.MakeGlobal();
 			_output.WriteLiteral("@Code\tLayout = Nothing End Code");
-			foreach (VB.Statement statement in _script.Statements)
+			Process(_script.Statements, globalScope, false);
+		}
+
+		private void Process(VB.StatementCollection statements, IdentifierScope scope, bool beginBlock)
+		{
+			var block = beginBlock ? _output.BeginBlock() : null;
+			try
 			{
-				Process(statement, globalScope);
+				foreach (VB.Statement statement in statements)
+				{
+					Process(statement, scope);
+				}
+			}
+			finally
+			{
+				block?.Dispose();
 			}
 		}
 
@@ -71,10 +84,10 @@ namespace Transpiler
 				//{
 				//	return GenerateFunctionExpr((VB.FunctionDeclaration)expr, scope);
 				//}
-				//else if (expr is VB.SubDeclaration)
-				//{
-				//	return GenerateSubExpr((VB.SubDeclaration)expr, scope);
-				//}
+				else if (expr is VB.SubDeclaration sub)
+				{
+					GenerateSubExpr(sub, scope);
+				}
 				////else if (expr is SymplLambdaExpr)
 				////{
 				////    return GenerateLambdaExpr((SymplLambdaExpr)expr, scope);
@@ -403,14 +416,9 @@ namespace Transpiler
 			}
 			
 			_output.WriteCode($"For {forBlock.ControlExpression.Render(scope)} = {forBlock.LowerBoundExpression.Render(scope)} To {forBlock.UpperBoundExpression.Render(scope)}", true);
-			
-			using (var _ = _output.BeginBlock())
-			{
-				foreach (var st in forBlock.Statements)
-				{
-					Process(st, scope); //Could make new scope here, but I don't think VBscript supports that?
-				}
-			}
+
+			Process(forBlock.Statements, scope, true);
+
 			_output.WriteCode("Next", true);
 			/*var loopscope = new AnalysisScope(scope, "loop ");
 			loopscope.IsForLoop = true; // needed for exit
@@ -485,13 +493,7 @@ namespace Transpiler
 		{
 			void outputBody()
 			{
-				using (var _ = _output.BeginBlock())
-				{
-					foreach (var st in doBlock.Statements)
-					{
-						Process(st, scope); //Could make new scope here, but I don't think VBscript supports that?
-					}
-				}
+				Process(doBlock.Statements, scope, true);
 			}
 
 			if (doBlock.Expression != null)
@@ -529,6 +531,18 @@ namespace Transpiler
 			}
 		}
 
+		private void GenerateSubExpr(VB.SubDeclaration sub,
+			IdentifierScope scope)
+		{
+			
+			
+			string subName = sub.Name.Name;
+			scope.Define(subName);
+
+			_output.WriteCode($"Sub {subName}({sub.Parameters.Render()})", true);
+			Process(sub.Statements, scope, true);
+			_output.WriteCode($"End Sub", true);
+		}
 		/*public void GenerateForEachBlockExpr(VB.ForEachBlockStatement forBlock,
 			IdentifierScope scope)
 		{
@@ -690,22 +704,6 @@ namespace Transpiler
 		//ParameterExpression p = Expression.Parameter(typeof(object), funcName);
 		//scope.Names.Add(funcName, p);
 		ParameterExpression p = scope.Names[funcName];
-		return Expression.Assign(p, lambda);
-	}
-
-	public static Expression GenerateSubExpr(VB.SubDeclaration sub,
-													  AnalysisScope scope)
-	{
-		if (!scope.IsModule)
-		{
-			throw new InvalidOperationException(
-				"Use Defmethod or Lambda when not defining top-level function.");
-		}
-		string subName = sub.Name.Name.ToLower();
-		Expression lambda = GenerateLambdaDef(sub.Parameters, sub.Statements, scope, subName, true);
-		//ParameterExpression p = Expression.Parameter(typeof(object), subName);
-		//scope.Names.Add(subName, p);
-		ParameterExpression p = scope.Names[subName];
 		return Expression.Assign(p, lambda);
 	}
 

@@ -28,5 +28,7 @@ and Microsoft will not provide technical support for it.
 		
 		<P>Include files can be referenced using either
 		absolute or relative paths.<BR>
+            <%OutputDynamicText %>
+        <p>Text after the dynamic text</p>
     </BODY>
 </HTML>

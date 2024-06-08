@@ -8,6 +8,7 @@ namespace Transpiler
 	{
 		[TestCase("components\\FileSystem.asp")]
 		[TestCase("Database\\SimpleQuery.asp")]
+		[TestCase("Simple\\Includes.asp")]
 		public void TranspileOne(string fileName)
 		{
 			var folder = Path.GetDirectoryName(fileName);
