@@ -20,16 +20,16 @@ namespace Dlrsoft.Asp
     {
         private string _pagePath;
         private string _virtualRootPath;
-        private List<string> _literals = new List<string>();
-        private StringBuilder _sb;
-        private VBScriptSourceMapper _mapper = new VBScriptSourceMapper();
+        /// <summary>
+        /// Holds the literals found on the pages, which is all the text outside <% %>
+        /// </summary>
+        private readonly List<string> _literals = new List<string>();
+        /// <summary>
+        /// Holds all the unparsed script lines, with Response.Write(_literals(x)) replacing the static content.
+        /// </summary>
+        private readonly StringBuilder _sb = new StringBuilder();
+        private readonly VBScriptSourceMapper _mapper = new VBScriptSourceMapper();
         private int _curLine = 0;
-
-        public AspPageDom()
-        {
-            _sb = new StringBuilder();
-            _literals = new List<string>();
-        }
 
         /// <summary>
         /// Read the page from pagePath and process the page.
@@ -58,9 +58,6 @@ namespace Dlrsoft.Asp
 
         /// <summary>
         /// Process the page in aspFile string. Pagepath is only used for getting included files.
-        /// DS: After this method completes, the literals and code statements are separated.
-        /// Literals are in a list and replaced with response.write(literal[x]).
-        /// _sb has all of the code statements as unparsed text.
         /// </summary>
         /// <param name="pagePath"></param>
         /// <param name="aspFile"></param>

@@ -13,8 +13,8 @@ namespace Dlrsoft.VBScript.Parser
 	// 
 
 	/// <summary>
-/// A parse tree for a literal expression.
-/// </summary>
+	/// A parse tree for a literal expression.
+	/// </summary>
 	public abstract class LiteralExpression : Expression
 	{
 
@@ -33,6 +33,11 @@ namespace Dlrsoft.VBScript.Parser
 		{
 
 			Debug.Assert(type >= TreeType.StringLiteralExpression && type <= TreeType.BooleanLiteralExpression);
+		}
+
+		public override string ToString()
+		{
+			return Value.ToString();
 		}
 	}
 }

@@ -14,8 +14,8 @@ namespace Dlrsoft.VBScript.Parser
 	// 
 
 	/// <summary>
-/// A parse tree for a simple name expression.
-/// </summary>
+	/// A parse tree for a simple name expression.
+	/// </summary>
 	public sealed class SimpleNameExpression : Expression
 	{
 
@@ -54,5 +54,8 @@ namespace Dlrsoft.VBScript.Parser
 		{
 			AddChild(childList, Name);
 		}
+
+		public override string ToString()
+			=> Name.ToString();
 	}
 }

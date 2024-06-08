@@ -13,8 +13,8 @@ namespace Dlrsoft.VBScript.Parser
 	// 
 
 	/// <summary>
-/// A parse tree for a simple name (e.g. 'foo').
-/// </summary>
+	/// A parse tree for a simple name (e.g. 'foo').
+	/// </summary>
 	public sealed class SimpleName : Name
 	{
 
@@ -108,5 +108,8 @@ namespace Dlrsoft.VBScript.Parser
 				return Name is null;
 			}
 		}
+
+		public override string ToString()
+			=> Name;
 	}
 }

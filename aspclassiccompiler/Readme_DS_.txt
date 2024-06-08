@@ -18,3 +18,27 @@ var block = new VB.Parser().ParseScriptFile(scanner, errorTable);
 Block is now the file parsed to tokens.
 
 Maybe next step is to make a "simple" transpiler and start working with one file?
+
+Asp.net dynamic host path:
+AspHandler
+AspHost.ProcessPageFromFile
+AspPageDom.processPage - After this method completes, the literals and code statements are separated. Literals are in a list and replaced with response.write(literal[x]). _sb has all of the code statements as unparsed text.
+AspHost.CompilePage - Creates a Microsoft.Scripting.Hosting.ScriptSource using a VBScriptStringContentProvider (provided with the AspPageDom)
+VBScriptContext.CompileSourceCode - called via Microsoft.Scripting (registered with the script engine).
+VBScript.ParseFileToLambda (gets a VBScriptSourceCodeReader, not a plain TextReader)
+	VB.Parser().ParseScriptFile(VB.Scanner) to create a ScriptBlock
+	VBScriptAnalyzer.AnalyzeFile - Put module variables and functions into the scope
+	loops and uses VBScriptGenerator to create dynamic code from the script
+	
+I want to have an analysis phase that can identitify things like include pages, variable types, etc.
+Does that mean loading and parsing the whole site to be able to parse?
+I think I'd like discrete parsing steps to make it documenting. But I'm also okay with quick and dirty and not architected well.
+How much is general logic, and how much is MS2 transpiler?
+One analysis/transformation pass is to remove the MS2 COM object. Or does that just happen at output time?
+Defining variables would be nice too. Can I correct the case of variables to match their first usage?
+Can I output to C# instead of VB?
+Can I identitify variables that are being written to a URL and url encode them?
+Can I identitify variables that are being concatenated into a SQL string?
+Can I migrate from ADO, maybe with a wrapper interface or helper class?
+need to preserve comments, currently they look striped.
+

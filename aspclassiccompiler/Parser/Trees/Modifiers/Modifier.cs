@@ -13,8 +13,8 @@ namespace Dlrsoft.VBScript.Parser
 	// 
 
 	/// <summary>
-/// A parse tree for a declaration modifier.
-/// </summary>
+	/// A parse tree for a declaration modifier.
+	/// </summary>
 	public sealed class Modifier : Tree
 	{
 
@@ -46,6 +46,19 @@ namespace Dlrsoft.VBScript.Parser
 			}
 
 			_ModifierType = modifierType;
+		}
+
+		public override string ToString()
+		{
+			switch (ModifierType)
+			{
+				case ModifierTypes.Dim:
+					return "Dim";
+				case ModifierTypes.Const:
+					return "Const";
+				default:
+					throw new ArgumentOutOfRangeException("Unimplemented modifier type");
+			}
 		}
 	}
 }

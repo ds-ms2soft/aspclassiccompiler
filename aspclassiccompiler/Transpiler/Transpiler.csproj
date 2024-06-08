@@ -12,6 +12,13 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Parser\Parser.vbproj" />
+    <ProjectReference Include="..\asp\Asp.csproj" />
+    <ProjectReference Include="..\Parser\Parser.csproj" />
+    <ProjectReference Include="..\VBScript\VBScript.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Scripting">
+      <HintPath>..\AspWebApp\Bin\Microsoft.Scripting.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

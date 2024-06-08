@@ -5,15 +5,7 @@
 		Return View("ViewPage1")
 	End Function
 
-	Function About() As ActionResult
-		ViewData("Message") = "Your application description page."
-
-		Return View()
-	End Function
-
-	Function Contact() As ActionResult
-		ViewData("Message") = "Your contact page."
-
-		Return View()
+	Function Asp(id As string) As ActionResult
+		Return View(id)
 	End Function
 End Class

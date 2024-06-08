@@ -217,6 +217,7 @@
     <Content Include="Scripts\bootstrap.bundle.min.js.map" />
     <Content Include="Scripts\bootstrap.bundle.js.map" />
     <Content Include="Views\Home\ViewPage1.vbhtml" />
+    <Content Include="Views\Home\FileSystem.Asp.vbhtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="favicon.ico" />
@@ -239,6 +240,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Components\" />
     <Folder Include="Models\" />
     <Folder Include="Temp\" />
   </ItemGroup>
