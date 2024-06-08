@@ -1,6 +1,4 @@
-﻿@Code
-	Layout = Nothing
-End Code
+﻿@Code	Layout = Nothing End Code
 <!*************************
 This sample is provided for educational purposes only. It is not intended to be 
 used in a production environment, has not been tested in a production environment, 

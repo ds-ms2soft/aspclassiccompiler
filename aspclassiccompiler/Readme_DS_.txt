@@ -41,4 +41,12 @@ Can I identitify variables that are being written to a URL and url encode them?
 Can I identitify variables that are being concatenated into a SQL string?
 Can I migrate from ADO, maybe with a wrapper interface or helper class?
 need to preserve comments, currently they look striped.
+strip extra blank lines?
+
+
+Real process:
+-Parse everything to find all include files. use a full canonical path to identify them.
+-Transpile all the includes. I need to know they are includes because I'd probably render them differently. Possibly as classes? Or maybe a partial view? That needs discovery.
+-Then transpile all the files, referencing the include files some how
+
 

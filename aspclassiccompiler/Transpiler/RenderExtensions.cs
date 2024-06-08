@@ -36,6 +36,18 @@ namespace Transpiler
 				return
 					$"{binary.LeftOperand.Render(scope)} {binary.Operator.Render()} {binary.RightOperand.Render(scope)}";
 			}
+			else if (exp is ParentheticalExpression paren)
+			{
+				if (paren.Children.Count != 1)
+				{
+					throw new NotImplementedException();
+				}
+				return $"({(paren.Children[0] as Expression).Render(scope)})";
+			}
+			else if (exp is UnaryOperatorExpression unary)
+			{
+				return unary.Operator.Render() + " " + unary.Operand.Render(scope);
+			}
 			else
 			{
 				throw new NotImplementedException($"Can't render: {exp.GetType().Name}");

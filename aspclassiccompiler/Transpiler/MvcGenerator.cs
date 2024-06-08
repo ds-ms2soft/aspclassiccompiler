@@ -35,6 +35,7 @@ namespace Transpiler
 			_output = output;
 			_literals = literals;
 			var globalScope = IdentifierScope.MakeGlobal();
+			_output.WriteLiteral("@Code\tLayout = Nothing End Code");
 			foreach (VB.Statement statement in _script.Statements)
 			{
 				Process(statement, globalScope);
@@ -134,10 +135,10 @@ namespace Transpiler
 				//{
 				//	return GenerateWhileBlockExpr((VB.WhileBlockStatement)expr, scope);
 				//}
-				//else if (expr is VB.DoBlockStatement)
-				//{
-				//	return GenerateDoBlockExpr((VB.DoBlockStatement)expr, scope);
-				//}
+				else if (expr is VB.DoBlockStatement @do)
+				{
+					GenerateDoBlockExpr(@do, scope);
+				}
 				//else if (expr is VB.WithBlockStatement)
 				//{
 				//	return GenerateWithBlockExpr((VB.WithBlockStatement)expr, scope);
@@ -477,6 +478,55 @@ namespace Transpiler
 				),
 				myLoop
 			);*/
+		}
+
+		private void GenerateDoBlockExpr(VB.DoBlockStatement doBlock,
+			IdentifierScope scope)
+		{
+			void outputBody()
+			{
+				using (var _ = _output.BeginBlock())
+				{
+					foreach (var st in doBlock.Statements)
+					{
+						Process(st, scope); //Could make new scope here, but I don't think VBscript supports that?
+					}
+				}
+			}
+
+			if (doBlock.Expression != null)
+			{
+				if (doBlock.IsWhile) //do while ... loop
+				{
+					_output.WriteCode($"Do while {doBlock.Expression.Render(scope)}", true);
+					outputBody();
+					_output.WriteCode("Loop", true);
+				}
+				else // do until ... loop
+				{
+					_output.WriteCode("Do", true);
+					outputBody();
+					_output.WriteCode($"Until {doBlock.Expression.Render(scope)}", true);
+				}
+			}
+			else
+			{
+				throw new NotImplementedException("Unimplemented loop, need an example");
+				/*
+				if (doBlock.EndStatement.IsWhile) //do ... loop while
+				{
+					_output.WriteCode("Do", true);
+					outputBody();
+					_output.WriteCode($"Loop While {doBlock.Expression.Render(scope)}", true);
+				}
+				else // do until ... loop
+				{
+					_output.WriteCode("Do", true);
+					outputBody();
+					_output.WriteCode($"Until {doBlock.Expression.Render(scope)}", true);
+				}
+				*/
+			}
 		}
 
 		/*public void GenerateForEachBlockExpr(VB.ForEachBlockStatement forBlock,
@@ -1276,82 +1326,6 @@ namespace Transpiler
 		withScope.IsWith = true;
 		withScope.WithExpression = GenerateExpr(withBlock.Expression, scope);
 		return GenerateBlockExpr(withBlock.Statements, withScope);
-	}
-
-	public static Expression GenerateDoBlockExpr(VB.DoBlockStatement doBlock,
-									  AnalysisScope scope)
-	{
-		//Todo: Need to take care While/Until at beginning/end
-		var loopscope = new AnalysisScope(scope, "loop ");
-		loopscope.IsDoLoop = true; // needed for break and continue
-		loopscope.LoopBreak = Expression.Label("loop break");
-		loopscope.LoopContinue = Expression.Label("loop continue");
-		var body = GenerateBlockExpr(doBlock.Statements, loopscope);
-
-		if (doBlock.Expression != null)
-		{
-			if (doBlock.IsWhile) //do while ... loop
-			{
-				return Expression.Loop(
-					Expression.Block(
-						Expression.IfThenElse(
-							WrapBooleanTest(GenerateExpr(doBlock.Expression, loopscope)),
-							Expression.Empty(),
-							Expression.Goto(loopscope.LoopBreak)
-						),
-						body
-					),
-					loopscope.LoopBreak,
-					loopscope.LoopContinue
-				);
-			}
-			else // do until ... loop
-			{
-				return Expression.Loop(
-					Expression.Block(
-						Expression.IfThen(
-							WrapBooleanTest(GenerateExpr(doBlock.Expression, loopscope)),
-							Expression.Goto(loopscope.LoopBreak)
-						),
-						body
-					),
-					loopscope.LoopBreak,
-					loopscope.LoopContinue
-				);
-			}
-		}
-		else
-		{
-			if (doBlock.EndStatement.IsWhile) //do ... loop while
-			{
-				return Expression.Loop(
-					Expression.Block(
-						body,
-						Expression.IfThenElse(
-							WrapBooleanTest(GenerateExpr(doBlock.EndStatement.Expression, loopscope)),
-							Expression.Empty(),
-							Expression.Goto(loopscope.LoopBreak)
-						)
-					),
-					loopscope.LoopBreak,
-					loopscope.LoopContinue
-				);
-			}
-			else // do until ... loop
-			{
-				return Expression.Loop(
-					Expression.Block(
-						body,
-						Expression.IfThen(
-							WrapBooleanTest(GenerateExpr(doBlock.EndStatement.Expression, loopscope)),
-							Expression.Goto(loopscope.LoopBreak)
-						)
-					),
-					loopscope.LoopBreak,
-					loopscope.LoopContinue
-				);
-			}
-		}
 	}
 
 	public static Expression GenerateBreakExpr(VB.ExitStatement expr,
