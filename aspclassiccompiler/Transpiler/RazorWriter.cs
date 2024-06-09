@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Transpiler
 {
-	internal class RazorWriter
+	public class RazorWriter
 	{
 		public enum States
 		{
@@ -28,24 +28,36 @@ namespace Transpiler
 				_underlying.WriteLine(Environment.NewLine + "End Code");
 				CurrentState = States.Literal;
 			}
-			_underlying.WriteLine(literal);
+			_underlying.Write(literal);
 		}
 
+		//Note: could improve this to respect the initial indentation level of new code blocks (based on the tabs output in the last literal
+		//Note: could improve this to collapse code blocks that are only separated by whitespace. Not sure how much I care, but it would look better. It would also change the rendered output, maybe for the better?
 		public void WriteCode(string code, bool onNewLine)
 		{
-			if (CurrentState != States.Code)
+			if (CurrentState != States.Code && code.StartsWith("@"))
 			{
-				_underlying.Write("@Code");
-				CurrentState = States.Code;
-				_codeIndentationLevel = 1;
+				//render this inline and don't start a code block, ignore onNewLine
+				WriteLiteral(code);
 			}
+			else
+			{
+				if (CurrentState != States.Code)
+				{
 
-			if (onNewLine)
-			{
-				_underlying.Write(Environment.NewLine);
-				_underlying.Write(new String('\t', _codeIndentationLevel));
+					_underlying.Write("@Code");
+					CurrentState = States.Code;
+					_codeIndentationLevel = 1;
+				}
+
+				if (onNewLine)
+				{
+					_underlying.Write(Environment.NewLine);
+					_underlying.Write(new String('\t', _codeIndentationLevel));
+				}
+
+				_underlying.Write(code);
 			}
-			_underlying.Write(code);
 		}
 
 		public IDisposable BeginBlock()
