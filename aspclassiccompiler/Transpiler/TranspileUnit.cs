@@ -24,6 +24,8 @@ namespace Transpiler
 		public string AbsolutePath { get; }
 
 		public bool HasErrors => _errorTable.Any();
+		public string IncludeClassName { get; set; }
+		public IdentifierScope IncludeScope { get; set; }
 
 		public static TranspileUnit Parse(string absolutePath)
 		{

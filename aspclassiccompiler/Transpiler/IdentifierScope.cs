@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Dlrsoft.VBScript.Compiler;
 
 namespace Transpiler
 {
@@ -13,6 +14,12 @@ namespace Transpiler
 
 		private readonly Dictionary<string, string> _identifiers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
+		private static readonly Dictionary<string, string> GlobalIdentifiers = new Dictionary<string, string>
+		{
+			{ "Server", "Server" }, { "Request", "Request" }, { "Response", "Response" }, {"Session", "Session"},
+			{ "Application", "Application" }, { "Err", "Err" }, { "nErr", "nErr" }, { "Now", "DateTime.Now" }
+		};
+
 		public IdentifierScope(IdentifierScope parentScope, string scopePrefix = null)
 		{
 			_scopePrefix = scopePrefix != null ? scopePrefix + "." : null;
@@ -22,10 +29,10 @@ namespace Transpiler
 		public static IdentifierScope MakeGlobal()
 		{
 			var rv = new IdentifierScope(null);
-			rv.Define("Server");
-			rv.Define("Request");
-			rv.Define("Response");
-			rv.Define("Now", "DateTime.Now");
+			foreach (var keyValuePair in GlobalIdentifiers)
+			{
+				rv._identifiers.Add(keyValuePair.Key, keyValuePair.Value);
+			}
 			return rv;
 		}
 
@@ -40,9 +47,27 @@ namespace Transpiler
 			{
 				return identifier;
 			}
+			else if (VBScriptGenerator.IsBuiltInConstants(name) || VBScriptGenerator.IsBuiltInFunction(name))
+			{
+				return name;
+			}
 			else
 			{
-				throw new NotImplementedException("search for identifier.");
+				throw new NotImplementedException($"search for identifier: {name}");
+			}
+		}
+
+		/// <summary>
+		/// Forwards a reference to anything in the child scope to reference the same identifier on the variable name given.
+		/// </summary>
+		public void MapToVariable(IdentifierScope childScope, string variableName)
+		{
+			foreach (var kvp in childScope._identifiers)
+			{
+				if (!GlobalIdentifiers.ContainsKey(kvp.Key))
+				{
+					Define(kvp.Key, $"{variableName}.{kvp.Value}");
+				}
 			}
 		}
 	}

@@ -17,7 +17,7 @@ namespace Transpiler
 			var service = new TranspilerService(@"C:\Work\aspclassiccompiler\aspclassiccompiler\AspWebApp\" + folder,
 				@"C:\Work\aspclassiccompiler\aspclassiccompiler\MvcTestApp\Views\Home\");
 
-			service.Transpile(Path.GetFileName(fileName));
+			service.TranspileSingle(Path.GetFileName(fileName));
 		}
 
 		[Test]
@@ -27,15 +27,18 @@ namespace Transpiler
 				@"C:\Work\aspclassiccompiler\aspclassiccompiler\MvcTestApp\Views\Home\");
 
 			var errorCount = service.ParseAllFiles();
-			Console.WriteLine($"Files with errors: {errorCount}");
 			service.IdentifyIncludes();
-
+			
 			foreach (var page in service.IncludePages)
 			{
 				Console.WriteLine(page);
 			}
 
 			service.TranspileIncludes(@"..\..\Includes", "Includes", "Includes.IncludesBase");
+
+			var count = service.TranspileValidPages();
+			Console.WriteLine($"{count} valid pages transpiled.");
+			Console.WriteLine($"Files with errors: {errorCount}");
 		}
 	}
 }

@@ -16,7 +16,7 @@ using System.Collections;
 
 namespace Dlrsoft.VBScript.Compiler
 {
-	internal static class VBScriptGenerator
+	public static class VBScriptGenerator
     {
         private static Set<string> _builtinFunctions;
         private static Set<string> _builtinConstants;
@@ -34,7 +34,7 @@ namespace Dlrsoft.VBScript.Compiler
             return _builtinFunctions.Contains(name.ToLower());
         }
 
-        public static Expression GenerateExpr(VB.Tree expr, AnalysisScope scope)
+        internal static Expression GenerateExpr(VB.Tree expr, AnalysisScope scope)
         {
             try
             {
@@ -210,7 +210,7 @@ namespace Dlrsoft.VBScript.Compiler
             }
         }
 
-        public static Expression GenerateImportExpr(VB.ImportsDeclaration importDesc, AnalysisScope scope)
+        internal static Expression GenerateImportExpr(VB.ImportsDeclaration importDesc, AnalysisScope scope)
         {
             if (!scope.IsModule)
             {
@@ -226,7 +226,7 @@ namespace Dlrsoft.VBScript.Compiler
             return Expression.Block(exprs);
         }
 
-        public static Expression GenerateImportExpr(VB.NameImport import,
+        internal static Expression GenerateImportExpr(VB.NameImport import,
                                                     AnalysisScope scope)
         {
             if (!scope.IsModule)
@@ -245,7 +245,7 @@ namespace Dlrsoft.VBScript.Compiler
                 Expression.Constant(new string[]{}));
         }
 
-        public static Expression GenerateImportExpr(VB.AliasImport import,
+        internal static Expression GenerateImportExpr(VB.AliasImport import,
                                                      AnalysisScope scope)
         {
             if (!scope.IsModule)
@@ -287,7 +287,7 @@ namespace Dlrsoft.VBScript.Compiler
             );
         }
 
-        public static Expression GenerateFunctionExpr(VB.FunctionDeclaration func,
+        internal static Expression GenerateFunctionExpr(VB.FunctionDeclaration func,
                                                           AnalysisScope scope)
         {
             if (!scope.IsModule)
@@ -303,7 +303,7 @@ namespace Dlrsoft.VBScript.Compiler
             return Expression.Assign(p, lambda);
         }
 
-        public static Expression GenerateSubExpr(VB.SubDeclaration sub,
+        internal static Expression GenerateSubExpr(VB.SubDeclaration sub,
                                                           AnalysisScope scope)
         {
             if (!scope.IsModule)
@@ -319,7 +319,7 @@ namespace Dlrsoft.VBScript.Compiler
             return Expression.Assign(p, lambda);
         }
 
-        public static Expression GenerateDeclarationExpr(VB.LocalDeclarationStatement stmt, AnalysisScope scope)
+        internal static Expression GenerateDeclarationExpr(VB.LocalDeclarationStatement stmt, AnalysisScope scope)
         {
             List<Expression> expressions = new List<Expression>();
 
@@ -405,7 +405,7 @@ namespace Dlrsoft.VBScript.Compiler
                 return Expression.Empty();
         }
 
-        public static Expression GenerateRedimExpr(VB.ReDimStatement redim, AnalysisScope scope)
+        internal static Expression GenerateRedimExpr(VB.ReDimStatement redim, AnalysisScope scope)
         {
             List<Expression> expressions = new List<Expression>();
             foreach (VB.Expression variable in redim.Variables)
@@ -454,7 +454,7 @@ namespace Dlrsoft.VBScript.Compiler
         // Returns a dynamic InvokeMember or Invoke expression, depending on the
         // Function expression.
         //
-        public static Expression GenerateCallStmtExpr(
+        internal static Expression GenerateCallStmtExpr(
                 VB.CallStatement expr, AnalysisScope scope)
         {
             return GenerateCallOrIndexExpr(
@@ -470,7 +470,7 @@ namespace Dlrsoft.VBScript.Compiler
         // Returns a chain of GetMember and InvokeMember dynamic expressions for
         // the dotted expr.
         //
-        public static Expression GenerateDottedExpr(VB.QualifiedExpression expr,
+        internal static Expression GenerateDottedExpr(VB.QualifiedExpression expr,
                                                     AnalysisScope scope)
         {
             Expression curExpr = null;
@@ -516,7 +516,7 @@ namespace Dlrsoft.VBScript.Compiler
             return curExpr;
         }
 
-        public static Expression GenerateQualifiedNameExpr(VB.QualifiedName expr,
+        internal static Expression GenerateQualifiedNameExpr(VB.QualifiedName expr,
                                                     AnalysisScope scope)
         {
             Expression curExpr;
@@ -537,7 +537,7 @@ namespace Dlrsoft.VBScript.Compiler
         // lexical or dynamic exprs on the module scope.  Everything
         // else is dynamic.
         //
-        public static Expression GenerateAssignExpr(VB.AssignmentStatement expr,
+        internal static Expression GenerateAssignExpr(VB.AssignmentStatement expr,
                                                     AnalysisScope scope)
         {
             var val = GenerateExpr(expr.SourceExpression, scope);
@@ -597,7 +597,7 @@ namespace Dlrsoft.VBScript.Compiler
             throw new InvalidOperationException("Invalid left hand side type.");
         }
 
-        public static Expression GenerateCallOrIndexExpr(VB.CallOrIndexExpression expr, AnalysisScope scope)
+        internal static Expression GenerateCallOrIndexExpr(VB.CallOrIndexExpression expr, AnalysisScope scope)
         {
             List<Expression> args = GenerateArgumentList(expr.Arguments, scope);
             if (expr.TargetExpression is VB.SimpleNameExpression)
@@ -733,7 +733,7 @@ namespace Dlrsoft.VBScript.Compiler
         // scope chain, then we just return the stored ParamExpr.  Otherwise, the
         // reference is a dynamic member lookup on the root scope, a module object.
         //
-        public static Expression GenerateIdExpr(VB.SimpleNameExpression expr,
+        internal static Expression GenerateIdExpr(VB.SimpleNameExpression expr,
                                                 AnalysisScope scope)
         {
             string name = expr.Name.Name;
@@ -754,7 +754,7 @@ namespace Dlrsoft.VBScript.Compiler
             }
         }
 
-        public static Expression GenerateOnErrorStatement(VB.OnErrorStatement onError, AnalysisScope scope)
+        internal static Expression GenerateOnErrorStatement(VB.OnErrorStatement onError, AnalysisScope scope)
         {
             if (onError.OnErrorType == VB.OnErrorType.Next)
             {
@@ -774,7 +774,7 @@ namespace Dlrsoft.VBScript.Compiler
         // they appear.  Each var's init expr can refer to vars initialized before it.
         // The Block's body is the Let*'s body.
         //
-        //public static Expression GenerateLetStarExpr(SymplLetStarExpr expr,
+        //internal static Expression GenerateLetStarExpr(SymplLetStarExpr expr,
         //                                              AnalysisScope scope)
         //{
         //    var letscope = new AnalysisScope(scope, "let*");
@@ -809,7 +809,7 @@ namespace Dlrsoft.VBScript.Compiler
 
         // GenerateBlockExpr returns a Block with the body exprs.
         //
-        public static Expression GenerateBlockExpr(VB.StatementCollection stmts,
+        internal static Expression GenerateBlockExpr(VB.StatementCollection stmts,
                                                     AnalysisScope scope)
         {
             List<Expression> body = new List<Expression>();
@@ -850,7 +850,7 @@ namespace Dlrsoft.VBScript.Compiler
         // GenerateQuoteExpr converts a list, literal, or id expr to a runtime quoted
         // literal and returns the Constant expression for it.
         //
-        //public static Expression GenerateQuoteExpr(SymplQuoteExpr expr,
+        //internal static Expression GenerateQuoteExpr(SymplQuoteExpr expr,
         //                                            AnalysisScope scope)
         //{
         //    return Expression.Constant(MakeQuoteConstant(
@@ -885,7 +885,7 @@ namespace Dlrsoft.VBScript.Compiler
         //    }
         //}
 
-        //public static Expression GenerateEqExpr(SymplEqExpr expr,
+        //internal static Expression GenerateEqExpr(SymplEqExpr expr,
         //                                        AnalysisScope scope)
         //{
         //    var mi = typeof(RuntimeHelpers).GetMethod("SymplEq");
@@ -897,7 +897,7 @@ namespace Dlrsoft.VBScript.Compiler
         //                               typeof(object)));
         //}
 
-        //public static Expression GenerateConsExpr(SymplConsExpr expr,
+        //internal static Expression GenerateConsExpr(SymplConsExpr expr,
         //                                          AnalysisScope scope)
         //{
         //    var mi = typeof(RuntimeHelpers).GetMethod("MakeCons");
@@ -909,7 +909,7 @@ namespace Dlrsoft.VBScript.Compiler
         //                               typeof(object)));
         //}
 
-        //public static Expression GenerateListCallExpr(SymplListCallExpr expr,
+        //internal static Expression GenerateListCallExpr(SymplListCallExpr expr,
         //                                              AnalysisScope scope)
         //{
         //    var mi = typeof(Cons).GetMethod("_List");
@@ -924,7 +924,7 @@ namespace Dlrsoft.VBScript.Compiler
         //                                   .NewArrayInit(typeof(object), args));
         //}
 
-        public static Expression GenerateIfExpr(VB.IfBlockStatement ifBlock, AnalysisScope scope)
+        internal static Expression GenerateIfExpr(VB.IfBlockStatement ifBlock, AnalysisScope scope)
         {
             Expression elseBlock = null;
             if (ifBlock.ElseBlockStatement != null)
@@ -958,7 +958,7 @@ namespace Dlrsoft.VBScript.Compiler
                        typeof(void));
         }
 
-        public static Expression GenerateIfExpr(VB.LineIfStatement ifstmt, AnalysisScope scope)
+        internal static Expression GenerateIfExpr(VB.LineIfStatement ifstmt, AnalysisScope scope)
         {
             Expression elseBlock = null;
             if (ifstmt.ElseStatements != null)
@@ -981,7 +981,7 @@ namespace Dlrsoft.VBScript.Compiler
         }
 
 
-        public static Expression GenerateSelectBlockExpr(VB.SelectBlockStatement selectBlock,
+        internal static Expression GenerateSelectBlockExpr(VB.SelectBlockStatement selectBlock,
                                                     AnalysisScope scope)
         {
             ParameterExpression tmp = Expression.Parameter(typeof(object));
@@ -1055,7 +1055,7 @@ namespace Dlrsoft.VBScript.Compiler
             }
         }
 
-        public static Expression GenerateForBlockExpr(VB.ForBlockStatement forBlock,
+        internal static Expression GenerateForBlockExpr(VB.ForBlockStatement forBlock,
                                                   AnalysisScope scope)
         {
             var loopscope = new AnalysisScope(scope, "loop ");
@@ -1126,7 +1126,7 @@ namespace Dlrsoft.VBScript.Compiler
             );
         }
 
-        public static Expression GenerateForEachBlockExpr(VB.ForEachBlockStatement forBlock,
+        internal static Expression GenerateForEachBlockExpr(VB.ForEachBlockStatement forBlock,
                                                     AnalysisScope scope)
         {
             var loopscope = new AnalysisScope(scope, "loop ");
@@ -1193,7 +1193,7 @@ namespace Dlrsoft.VBScript.Compiler
                 );
         }
 
-        public static Expression GenerateWhileBlockExpr(VB.WhileBlockStatement whileBlock,
+        internal static Expression GenerateWhileBlockExpr(VB.WhileBlockStatement whileBlock,
                                                   AnalysisScope scope)
         {
             var breakTarget = Expression.Label("loop break");
@@ -1213,7 +1213,7 @@ namespace Dlrsoft.VBScript.Compiler
             );
         }
 
-        public static Expression GenerateWithBlockExpr(VB.WithBlockStatement withBlock,
+        internal static Expression GenerateWithBlockExpr(VB.WithBlockStatement withBlock,
                                                 AnalysisScope scope)
         {
             var withScope = new AnalysisScope(scope, "with");
@@ -1222,7 +1222,7 @@ namespace Dlrsoft.VBScript.Compiler
             return GenerateBlockExpr(withBlock.Statements, withScope); 
         }
 
-        public static Expression GenerateDoBlockExpr(VB.DoBlockStatement doBlock,
+        internal static Expression GenerateDoBlockExpr(VB.DoBlockStatement doBlock,
                                           AnalysisScope scope)
         {
             //Todo: Need to take care While/Until at beginning/end
@@ -1298,7 +1298,7 @@ namespace Dlrsoft.VBScript.Compiler
             }
         }
 
-        public static Expression GenerateBreakExpr(VB.ExitStatement expr,
+        internal static Expression GenerateBreakExpr(VB.ExitStatement expr,
                                         AnalysisScope scope)
         {
             var exitScope = _findFirstScope(scope, expr.ExitType);
@@ -1322,7 +1322,7 @@ namespace Dlrsoft.VBScript.Compiler
             return Expression.Break(target);
         }
 
-        public static Expression GenerateNewExpr(VB.NewExpression expr,
+        internal static Expression GenerateNewExpr(VB.NewExpression expr,
                                                 AnalysisScope scope)
         {
 
@@ -1349,7 +1349,7 @@ namespace Dlrsoft.VBScript.Compiler
             );
         }
 
-        public static Expression GenerateBinaryExpr(VB.BinaryOperatorExpression expr,
+        internal static Expression GenerateBinaryExpr(VB.BinaryOperatorExpression expr,
                                                    AnalysisScope scope)
         {
 
@@ -1427,7 +1427,7 @@ namespace Dlrsoft.VBScript.Compiler
             );
         }
 
-        public static Expression GenerateUnaryExpr(VB.UnaryOperatorExpression expr,
+        internal static Expression GenerateUnaryExpr(VB.UnaryOperatorExpression expr,
                                                   AnalysisScope scope)
         {
             ExpressionType op;
@@ -1683,7 +1683,7 @@ namespace Dlrsoft.VBScript.Compiler
             //}
         }
 
-        //public static Expression GenerateRuntimeVariablesExpression(AnalysisScope bodyscope)
+        //internal static Expression GenerateRuntimeVariablesExpression(AnalysisScope bodyscope)
         //{
         //    List<string> namesInScope = new List<string>();
         //    List<ParameterExpression> parametersInScope = new List<ParameterExpression>();

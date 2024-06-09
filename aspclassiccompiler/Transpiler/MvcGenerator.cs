@@ -173,10 +173,10 @@ namespace Transpiler
 				//{
 				//	return GenerateUnaryExpr((VB.UnaryOperatorExpression)expr, scope);
 				//}
-				//else if (expr is VB.SelectBlockStatement)
-				//{
-				//	return GenerateSelectBlockExpr((VB.SelectBlockStatement)expr, scope);
-				//}
+				else if (expr is VB.SelectBlockStatement blockStatement)
+				{
+					GenerateSelectBlockExpr(blockStatement, scope);
+				}
 				//else if (expr is VB.BlockStatement)
 				//{
 				//	return GenerateBlockExpr(((VB.BlockStatement)expr).Statements, scope);
@@ -195,14 +195,14 @@ namespace Transpiler
 				//{
 				//	return GenerateExpr(((VB.ParentheticalExpression)expr).Operand, scope);
 				//}
-				//else if (expr is VB.ReDimStatement)
-				//{
-				//	return GenerateRedimExpr((VB.ReDimStatement)expr, scope);
-				//}
-				//else if (expr is VB.OnErrorStatement)
-				//{
-				//	return GenerateOnErrorStatement((VB.OnErrorStatement)expr, scope);
-				//}
+				else if (expr is VB.ReDimStatement redimStatement)
+				{
+					GenerateRedimExpr(redimStatement, scope);
+				}
+				else if (expr is VB.OnErrorStatement errorStatement)
+				{
+					GenerateOnErrorStatement(errorStatement);
+				}
 				//else if (expr is ExpressionExpression)
 				//{
 				//	return ((ExpressionExpression)expr).Expression;
@@ -455,6 +455,69 @@ namespace Transpiler
 			_output.WriteCode($"End If", true);
 		}
 
+		private void GenerateOnErrorStatement(VB.OnErrorStatement onError)
+		{
+			switch (onError.OnErrorType)
+			{
+				case VB.OnErrorType.Next:
+					_output.WriteCode("On Error Resume Next", true);
+					break;
+				case VB.OnErrorType.Zero:
+				case VB.OnErrorType.MinusOne:
+					_output.WriteCode("On Error Goto 0", true);
+					break;
+				default:
+					throw new ArgumentOutOfRangeException($"Unimplemented error type: {onError.OnErrorType}");
+			}
+		}
+
+		private void GenerateRedimExpr(VB.ReDimStatement redim, IdentifierScope scope)
+		{
+			var code = "ReDim ";
+			if (redim.IsPreserve)
+			{
+				code += "Preserve ";
+			}
+
+			bool isFirst = true;
+			foreach (VB.CallOrIndexExpression variable in redim.Variables)
+			{
+				if (!isFirst)
+				{
+					code += ", ";
+				}
+
+				isFirst = false;
+
+				code += variable.TargetExpression.Render(scope) + $"[{variable.Arguments.Render(scope)}]";
+			}
+
+			_output.WriteCode(code, true);
+		}
+
+		private void GenerateSelectBlockExpr(VB.SelectBlockStatement selectBlock,
+			IdentifierScope scope)
+		{
+			_output.WriteCode("Select Case " + selectBlock.Expression.Render(scope), true);
+			using (var _ = _output.BeginBlock())
+			{
+				if (selectBlock.CaseBlockStatements != null)
+				{
+					foreach (VB.CaseBlockStatement @case in selectBlock.CaseBlockStatements)
+					{
+						_output.WriteCode("Case " + @case.CaseStatement.CaseClauses.Render(scope), true);
+						Process(@case.Statements, scope, true);
+					}
+				}
+				if (selectBlock.CaseElseBlockStatement != null)
+				{
+					_output.WriteCode("Case Else", true);
+					Process(selectBlock.CaseElseBlockStatement.Statements, scope, true);
+				}
+			}
+			_output.WriteCode("End Select", true);
+		}
+
 		/*public void GenerateForEachBlockExpr(VB.ForEachBlockStatement forBlock,
 			IdentifierScope scope)
 		{
@@ -617,52 +680,6 @@ namespace Transpiler
 		//scope.Names.Add(funcName, p);
 		ParameterExpression p = scope.Names[funcName];
 		return Expression.Assign(p, lambda);
-	}
-
-	public static Expression GenerateRedimExpr(VB.ReDimStatement redim, AnalysisScope scope)
-	{
-		List<Expression> expressions = new List<Expression>();
-		foreach (VB.Expression variable in redim.Variables)
-		{
-			VB.CallOrIndexExpression vd = (VB.CallOrIndexExpression)variable;
-			List<Expression> args = GenerateArgumentList(vd.Arguments, scope);
-			Expression converted = ConvertToIntegerArrayExpression(args);
-
-			Expression arrayExp;
-
-			if (!redim.IsPreserve)
-			{
-				//arrayExp = Expression.Convert(
-				//    Expression.NewArrayBounds(
-				//        typeof(object),
-				//        converted
-				//        ),
-				//    typeof(object)
-				//);
-				arrayExp = Expression.Call(
-					typeof(HelperFunctions).GetMethod("Redim"),
-					Expression.Constant(typeof(object)),
-					converted
-				);
-
-			}
-			else
-			{
-				arrayExp = Expression.Call(
-					typeof(HelperFunctions).GetMethod("RedimPreserve"),
-					GenerateExpr(vd.TargetExpression, scope),
-					converted
-				);
-			}
-
-			Expression initExpression = GenerateSimpleNameAssignExpr(
-				(VB.SimpleNameExpression)vd.TargetExpression,
-				arrayExp,
-				scope
-			);
-			expressions.Add(initExpression);
-		}
-		return Expression.Block(expressions);
 	}
 
 	// Returns a dynamic InvokeMember or Invoke expression, depending on the
@@ -904,22 +921,6 @@ namespace Transpiler
 		}
 	}
 
-	public static Expression GenerateOnErrorStatement(VB.OnErrorStatement onError, AnalysisScope scope)
-	{
-		if (onError.OnErrorType == VB.OnErrorType.Next)
-		{
-			scope.VariableScope.IsOnErrorResumeNextOn = true;
-		}
-		else if(onError.OnErrorType == VB.OnErrorType.Zero)
-		{
-			scope.VariableScope.IsOnErrorResumeNextOn = false;
-		}
-		return Expression.Call(
-					scope.ErrExpression,
-					typeof(ErrObject).GetMethod("Clear")
-				);
-	}
-
 	// GenerateLetStar returns a Block with vars, each initialized in the order
 	// they appear.  Each var's init expr can refer to vars initialized before it.
 	// The Block's body is the Let*'s body.
@@ -1097,83 +1098,7 @@ namespace Transpiler
 	}
 
 
-	public static Expression GenerateSelectBlockExpr(VB.SelectBlockStatement selectBlock,
-												AnalysisScope scope)
-	{
-		ParameterExpression tmp = Expression.Parameter(typeof(object));
-		Expression alt = null;
-		if (selectBlock.CaseElseBlockStatement != null)
-		{
-			alt = GenerateExpr((VB.BlockStatement)selectBlock.CaseElseBlockStatement, scope);
-		}
-		else
-		{
-			alt = Expression.Constant(false);
-		}
-
-		if (selectBlock.CaseBlockStatements != null && selectBlock.CaseBlockStatements.Count > 0)
-		{
-			for (int i = selectBlock.CaseBlockStatements.Count - 1; i >= 0; i--)
-			{
-				VB.CaseBlockStatement caseStmt = (VB.CaseBlockStatement)selectBlock.CaseBlockStatements.get_Item(i);
-				Expression condition = null;
-				for (int j = caseStmt.CaseStatement.CaseClauses.Count - 1; j >= 0; j--)
-				{
-					VB.RangeCaseClause caseClause = (VB.RangeCaseClause)caseStmt.CaseStatement.CaseClauses.get_Item(j);
-					//Expression oneCase = Expression.Equal(
-					//    tmp,
-					//    Expression.Convert(
-					//        GenerateExpr(caseClause.RangeExpression, scope),
-					//        typeof(object)
-					//    )
-					//);
-					Expression oneCase = WrapBooleanTest(
-						Expression.Dynamic(
-							scope.GetRuntime().GetBinaryOperationBinder(ExpressionType.Equal),
-							typeof(object),
-							new Expression[] {
-								tmp,
-								GenerateExpr(caseClause.RangeExpression, scope)
-							}
-						)
-					);
-
-					if (condition == null)
-					{
-						condition = oneCase;
-					}
-					else
-					{
-						condition = Expression.OrElse(oneCase, condition);
-					}
-				}
-				alt = Expression.Condition(
-						condition,
-						GenerateBlockExpr(caseStmt.Statements, scope),
-						alt,
-						typeof(void));
-			}
-
-			return Expression.Block(
-				new ParameterExpression[] {tmp},
-				Expression.Assign(
-					tmp,
-					RuntimeHelpers.EnsureObjectResult(
-						GenerateExpr(selectBlock.Expression, scope)
-					)
-				),
-				alt
-			);
-		}
-		else
-		{
-			throw new Exception("At least one case block needed.");
-		}
-	}
-
-	
-
-	
+		
 
 	public static Expression GenerateWhileBlockExpr(VB.WhileBlockStatement whileBlock,
 											  AnalysisScope scope)

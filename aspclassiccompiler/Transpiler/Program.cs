@@ -7,7 +7,7 @@
 			var service = new TranspilerService(@"C:\Work\aspclassiccompiler\aspclassiccompiler\AspWebApp\components\",
 				@"C:\Work\aspclassiccompiler\aspclassiccompiler\MvcTestApp\Views\Home\");
 
-			service.Transpile("FileSystem.asp");
+			service.TranspileSingle("FileSystem.asp");
 		}
 	}
 }

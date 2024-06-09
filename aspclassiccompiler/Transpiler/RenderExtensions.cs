@@ -48,6 +48,10 @@ namespace Transpiler
 			{
 				return unary.Operator.Render() + " " + unary.Operand.Render(scope);
 			}
+			else if (exp is NothingExpression nothing)
+			{
+				return "Nothing";
+			}
 			else
 			{
 				throw new NotImplementedException($"Can't render: {exp.GetType().Name}");
@@ -117,9 +121,34 @@ namespace Transpiler
 					return ">";
 				case OperatorType.GreaterThanEquals:
 					return ">=";
+				case OperatorType.Modulus:
+					return "Mod";
 				default:
 					throw new ArgumentOutOfRangeException(nameof(@operator), @operator, null);
 			}
+		}
+
+		public static string Render(this CaseClauseCollection clauses, IdentifierScope scope)
+		{
+			return clauses != null ? String.Join(", ", clauses.Select(parm => parm.Render(scope))) : null;
+		}
+
+		public static string Render(this CaseClause clause, IdentifierScope scope)
+		{
+			//this is probably not complete
+			if (clause is ComparisonCaseClause comp)
+			{
+				return comp.ComparisonOperator.Render() + " " + comp.Operand.Render(scope);
+			}
+			else if (clause is RangeCaseClause range)
+			{
+				return range.RangeExpression.Render(scope);
+			}
+			else
+			{
+				throw new NotImplementedException($"Haven't done render for {clause.GetType().Name}");
+			}
+			
 		}
 	}
 }
