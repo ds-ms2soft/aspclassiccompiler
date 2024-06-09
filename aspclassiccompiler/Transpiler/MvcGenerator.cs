@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dlrsoft.Asp;
 using VB = Dlrsoft.VBScript.Parser;
 
 namespace Transpiler
@@ -259,7 +260,7 @@ namespace Transpiler
 					_output.WriteCode($"@Html.Raw({statement.Arguments.Render(scope)})", true);
 				}
 			}
-			else if (statement.Matches("SERVER_SIDE_INCLUDE"))
+			else if (statement.Matches(AspPageDom.ServerSideInclude))
 			{
 				var path = ((VB.StringLiteralExpression)statement.Arguments.First().Expression).Literal;
 				HandleServerSideInclude(path, _output, scope);

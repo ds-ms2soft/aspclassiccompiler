@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Dlrsoft.Asp;
+using Dlrsoft.VBScript.Parser;
 using File = System.IO.File;
 
 namespace Transpiler
@@ -12,7 +14,10 @@ namespace Transpiler
 		private readonly string _outputFolderBase;
 
 		private Dictionary<string, TranspileUnit> _unitsByPath;
-		
+		private HashSet<string> _includePagesByPath;
+
+		public IEnumerable<string> IncludePages => _includePagesByPath ?? (IEnumerable<string>)Array.Empty<string>();
+
 		public TranspilerService(string sourceFolderBase, string outputFolderBase)
 		{
 			_sourceFolderBase = sourceFolderBase;
@@ -26,7 +31,18 @@ namespace Transpiler
 
 		public void IdentifyIncludes()
 		{
-
+			_includePagesByPath = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+			foreach (var unit in _unitsByPath.Values)
+			{
+				unit.Block.VisitAll<CallStatement>(exp =>
+				{
+					if (exp.Matches(AspPageDom.ServerSideInclude))
+					{
+						var path = ((StringLiteralExpression)exp.Arguments.First().Expression).Literal;
+						_includePagesByPath.Add(path);
+					}
+				});
+			}
 		}
 
 		public void ConvertIncludes(string outputFolderBase)

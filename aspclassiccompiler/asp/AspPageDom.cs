@@ -17,8 +17,13 @@ using Microsoft.Scripting;
 namespace Dlrsoft.Asp
 {
 	public class AspPageDom
-    {
-        private string _pagePath;
+	{
+        /// <summary>
+        /// Used to create a "method" call for an include.
+        /// </summary>
+		public static string ServerSideInclude = "SERVER_SIDE_INCLUDE";
+
+		private string _pagePath;
         private string _virtualRootPath;
         /// <summary>
         /// Holds the literals found on the pages, which is all the text outside <% %>
@@ -83,7 +88,7 @@ namespace Dlrsoft.Asp
                 {
                     case "<!-": //Include
                         var path = getIncludePath(pagePath, contents);
-                        appendBlock(pagePath, SourceUtil.GetSpan(lineRanges, m.Index, p1 - 1), $"SERVER_SIDE_INCLUDE(\"{path}\")", 1);
+                        appendBlock(pagePath, SourceUtil.GetSpan(lineRanges, m.Index, p1 - 1), $"{ServerSideInclude}(\"{path}\")", 1);
 						break;
                     case "<%@": //Declaration. Ignore
                         break;

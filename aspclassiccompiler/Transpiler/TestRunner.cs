@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using NUnit.Framework;
 
 namespace Transpiler
@@ -26,6 +27,12 @@ namespace Transpiler
 				@"C:\Work\aspclassiccompiler\aspclassiccompiler\MvcTestApp\Views\Home\");
 
 			service.ParseAllFiles();
+			service.IdentifyIncludes();
+
+			foreach (var page in service.IncludePages)
+			{
+				Console.WriteLine(page);
+			}
 		}
 	}
 }

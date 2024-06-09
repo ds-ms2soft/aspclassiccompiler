@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Dlrsoft.Asp;
 using Dlrsoft.VBScript.Compiler;
@@ -9,8 +8,11 @@ namespace Transpiler
 {
 	public class TranspileUnit
 	{
-		private TranspileUnit(string absolutePath, ScriptBlock block, AspPageDom page)
+		private readonly List<SyntaxError> _errorTable;
+
+		private TranspileUnit(string absolutePath, ScriptBlock block, AspPageDom page, List<SyntaxError> errorTable)
 		{
+			_errorTable = errorTable;
 			AbsolutePath = absolutePath;
 			Block = block;
 			Page = page;
@@ -18,8 +20,10 @@ namespace Transpiler
 		
 		public AspPageDom Page { get; }
 		public ScriptBlock Block { get; }
-
+		
 		public string AbsolutePath { get; }
+
+		public bool HasErrors => _errorTable.Any();
 
 		public static TranspileUnit Parse(string absolutePath)
 		{
@@ -32,12 +36,9 @@ namespace Transpiler
 			var errorTable = new List<SyntaxError>();
 
 			var block = new Parser().ParseScriptFile(scanner, errorTable);
-			if (errorTable.Any())
-			{
-				throw new Exception($"Failed to parse {absolutePath} :\n\n" + String.Join("\n", errorTable.Select(e => e.ToString())));
-			}
+			
 
-			return new TranspileUnit(absolutePath, block, page);
+			return new TranspileUnit(absolutePath, block, page, errorTable);
 		}
 	}
 }
