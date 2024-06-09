@@ -26,13 +26,16 @@ namespace Transpiler
 			var service = new TranspilerService(@"C:\Work\aspclassiccompiler\aspclassiccompiler\AspWebApp\",
 				@"C:\Work\aspclassiccompiler\aspclassiccompiler\MvcTestApp\Views\Home\");
 
-			service.ParseAllFiles();
+			var errorCount = service.ParseAllFiles();
+			Console.WriteLine($"Files with errors: {errorCount}");
 			service.IdentifyIncludes();
 
 			foreach (var page in service.IncludePages)
 			{
 				Console.WriteLine(page);
 			}
+
+			service.TranspileIncludes(@"..\..\Includes", "Includes", "Includes.IncludesBase");
 		}
 	}
 }

@@ -10,7 +10,7 @@ namespace Transpiler
 	{
 		private VB.ScriptBlock _script;
 
-		private RazorWriter _output;
+		private OutputWriter _output;
 
 		private IReadOnlyList<string> _literals;
 		/*private static HashSet<string> _builtinFunctions;
@@ -30,14 +30,14 @@ namespace Transpiler
 		}*/
 
 
-		public void Transpile(VB.ScriptBlock script, RazorWriter output, IReadOnlyList<string> literals)
+		public IdentifierScope Transpile(VB.ScriptBlock script, OutputWriter output, IReadOnlyList<string> literals)
 		{
 			_script = script;
 			_output = output;
 			_literals = literals;
 			var globalScope = IdentifierScope.MakeGlobal();
-			_output.WriteLiteral("@Code\tLayout = Nothing End Code");
 			Process(_script.Statements, globalScope, false);
+			return globalScope;
 		}
 
 		private void Process(VB.StatementCollection statements, IdentifierScope scope, bool beginBlock)
@@ -236,7 +236,7 @@ namespace Transpiler
 			}
 		}
 
-		public Action<string, RazorWriter, IdentifierScope> HandleServerSideInclude { get; set; } = (s, writer, arg3) =>
+		public Action<string, OutputWriter, IdentifierScope> HandleServerSideInclude { get; set; } = (s, writer, arg3) =>
 			throw new NotImplementedException($"Provide HandleServerSideInclude (include: {s})");
 
 		private void ProcessCall(VB.CallStatement statement, IdentifierScope scope)

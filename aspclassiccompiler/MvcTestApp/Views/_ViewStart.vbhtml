@@ -1,3 +1,3 @@
 ﻿@Code
-    Layout = "~/Views/Shared/_Layout.vbhtml"
+    Layout = Nothing 'We want no layout by default for the asp imports
 End Code

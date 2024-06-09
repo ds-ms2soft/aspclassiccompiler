@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Transpiler
 {
-	public class RazorWriter
+	public class RazorWriter: OutputWriter
 	{
 		public enum States
 		{
@@ -12,7 +12,6 @@ namespace Transpiler
 		}
 
 		public States CurrentState { get; private set; } = States.Literal;
-		private int _codeIndentationLevel = 0;
 
 		private readonly StreamWriter _underlying;
 
@@ -21,7 +20,7 @@ namespace Transpiler
 			_underlying = underlying;
 		}
 
-		public void WriteLiteral(string literal)
+		public override void WriteLiteral(string literal)
 		{
 			if (CurrentState != States.Literal)
 			{
@@ -33,7 +32,7 @@ namespace Transpiler
 
 		//Note: could improve this to respect the initial indentation level of new code blocks (based on the tabs output in the last literal
 		//Note: could improve this to collapse code blocks that are only separated by whitespace. Not sure how much I care, but it would look better. It would also change the rendered output, maybe for the better?
-		public void WriteCode(string code, bool onNewLine)
+		public override void WriteCode(string code, bool onNewLine)
 		{
 			if (CurrentState != States.Code && code.StartsWith("@"))
 			{
@@ -44,7 +43,6 @@ namespace Transpiler
 			{
 				if (CurrentState != States.Code)
 				{
-
 					_underlying.Write("@Code");
 					CurrentState = States.Code;
 					_codeIndentationLevel = 1;
@@ -53,31 +51,10 @@ namespace Transpiler
 				if (onNewLine)
 				{
 					_underlying.Write(Environment.NewLine);
-					_underlying.Write(new String('\t', _codeIndentationLevel));
+					_underlying.Write(GetIndentation());
 				}
 
 				_underlying.Write(code);
-			}
-		}
-
-		public IDisposable BeginBlock()
-		{
-			return new Indenter(this);
-		}
-
-		private class Indenter : IDisposable
-		{
-			private readonly RazorWriter _writer;
-
-			public Indenter(RazorWriter writer)
-			{
-				_writer = writer;
-				_writer._codeIndentationLevel++;
-			}
-
-			public void Dispose()
-			{
-				_writer._codeIndentationLevel--;
 			}
 		}
 	}

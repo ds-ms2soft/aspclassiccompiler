@@ -61,7 +61,7 @@ start making MS2 specific overloads.
 make a proxy for ADODB
 convert a more complex page, find the other bits that are missing.
 copy a bunch of *.asp pages to my machine (or is that bad)?
-what is a good proof of concept? tdetail.asp is the hardest/best.
+what is a good proof of concept? tdetail.asp is the hardest/best. Maybe find a page that is more complex, but also stand alone?
 
 for an include file:
 make a class that has methods, fields and a render content method.
