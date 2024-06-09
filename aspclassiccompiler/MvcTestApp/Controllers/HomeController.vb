@@ -5,7 +5,9 @@
 		Return View("ViewPage1")
 	End Function
 
-	Function Asp(id As string) As ActionResult
-		Return View(id)
+	Function Asp() As ActionResult
+		Dim viewName = Request.RawUrl.Split("?")(0).TrimStart("/")
+		'TODO: Need to fix server.mappath and such to work on the raw URL.
+		Return View(viewName)
 	End Function
 End Class
