@@ -43,7 +43,8 @@ uuid="00000205-0000-0010-8000-00AA006D2EA4" -->
 			' Setup Call to Stored Procedure and append parameters
 
 			oCmd.CommandText = "{call byroyalty(?)}"
-			oCmd.Parameters.Append oCmd.CreateParameter("@Percentage", adInteger, adParamInput)
+			oCmd.Parameters.Append oCmd.CreateParameter("@Percentage", 3, _ 'adInteger 
+			  1)'adParamInput)
 
 			
 			' Assign value to input parameter
