@@ -138,8 +138,10 @@
     <Compile Include="Global.asax.vb">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Includes\HeaderInfo.vb" />
+    <Compile Include="Includes\Database\adovbs.vb" />
+    <Compile Include="Includes\HeaderInfo_Mine.vb" />
     <Compile Include="Includes\IncludesBase.vb" />
+    <Compile Include="Includes\Simple\HeaderInfo.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -221,8 +223,6 @@
     <Content Include="Scripts\bootstrap.bundle.min.js.map" />
     <Content Include="Scripts\bootstrap.bundle.js.map" />
     <Content Include="Views\Home\ViewPage1.vbhtml" />
-    <Content Include="Views\Home\FileSystem.Asp.vbhtml" />
-    <Content Include="Views\Home\SimpleQuery.Asp.vbhtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="favicon.ico" />

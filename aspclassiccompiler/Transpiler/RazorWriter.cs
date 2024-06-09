@@ -8,7 +8,9 @@ namespace Transpiler
 		public enum States
 		{
 			Literal,
-			Code
+			Code,
+			Functions,
+			SubOrFunctionBody
 		}
 
 		public States CurrentState { get; private set; } = States.Literal;
@@ -22,11 +24,7 @@ namespace Transpiler
 
 		public override void WriteLiteral(string literal)
 		{
-			if (CurrentState != States.Literal)
-			{
-				_underlying.WriteLine(Environment.NewLine + "End Code");
-				CurrentState = States.Literal;
-			}
+			TransitionToState(States.Literal);
 			_underlying.Write(literal);
 		}
 
@@ -34,18 +32,47 @@ namespace Transpiler
 		//Note: could improve this to collapse code blocks that are only separated by whitespace. Not sure how much I care, but it would look better. It would also change the rendered output, maybe for the better?
 		public override void WriteCode(string code, bool onNewLine)
 		{
-			if (CurrentState != States.Code && code.StartsWith("@"))
+			if (CurrentState == States.Literal && code.StartsWith("@"))
 			{
 				//render this inline and don't start a code block, ignore onNewLine
 				WriteLiteral(code);
 			}
-			else
+			else if (CurrentState == States.Literal && String.IsNullOrWhiteSpace(code))
 			{
-				if (CurrentState != States.Code)
+				//ignore empty statement output
+			}
+			else if (CurrentState == States.SubOrFunctionBody)
+			{
+				if (onNewLine)
 				{
-					_underlying.Write("@Code");
-					CurrentState = States.Code;
-					_codeIndentationLevel = 1;
+					_underlying.Write(Environment.NewLine);
+					_underlying.Write(GetIndentation());
+				}
+
+				if (code.StartsWith("@Html.Raw", StringComparison.OrdinalIgnoreCase)) //HtmlHelper not available in a function or sub, instead use our "Raw" base class method 
+				{
+					code = code.Substring("@Html.".Length);
+				}
+
+				_underlying.Write(code);
+				if (code.StartsWith("End Function", StringComparison.OrdinalIgnoreCase) ||
+				    code.StartsWith("End Sub", StringComparison.OrdinalIgnoreCase))
+				{
+					TransitionToState(States.Functions); //not in a method body any more.
+				}
+			}
+			else 
+			{
+
+				if (code.StartsWith("Sub ", StringComparison.OrdinalIgnoreCase) ||
+				    code.StartsWith("Function ", StringComparison.OrdinalIgnoreCase))
+				{
+					TransitionToState(States.Functions); //open a @functions section
+					TransitionToState(States.SubOrFunctionBody); //now we are in the body (well we will be soon, and setting it now doesn't matter.
+				}
+				else
+				{
+					TransitionToState(States.Code);
 				}
 
 				if (onNewLine)
@@ -55,6 +82,56 @@ namespace Transpiler
 				}
 
 				_underlying.Write(code);
+			}
+		}
+
+		private void TransitionToState(States newState)
+		{
+			if (newState != CurrentState)
+			{
+				//Close the current thing
+				switch (CurrentState)
+				{
+					case States.Literal:
+						break;
+					case States.Code:
+						_underlying.WriteLine(Environment.NewLine + "End Code");
+						break;
+					case States.Functions:
+						if (newState != States.SubOrFunctionBody)
+						{
+							_underlying.WriteLine(Environment.NewLine + "End Functions");
+						}
+						break;
+					case States.SubOrFunctionBody:
+						break;
+					default:
+						throw new ArgumentOutOfRangeException();
+				}
+
+				switch (newState)
+				{
+					case States.Literal:
+						break;
+					case States.Code:
+						_underlying.Write("@Code");
+						_codeIndentationLevel = 1;
+						break;
+					case States.Functions:
+						if (CurrentState != States.SubOrFunctionBody)
+						{
+							_underlying.Write("@Functions");
+						}
+
+						_codeIndentationLevel = 1;
+						break;
+					case States.SubOrFunctionBody:
+						break;
+					default:
+						throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
+				}
+
+				CurrentState = newState;
 			}
 		}
 	}

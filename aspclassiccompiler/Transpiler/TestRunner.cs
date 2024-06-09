@@ -11,11 +11,12 @@ namespace Transpiler
 		[TestCase("Database\\SimpleQuery.asp")]
 		[TestCase("Simple\\Includes.asp")]
 		[TestCase("Components\\BrowserCap.asp")]
+		[TestCase("Simple\\Functions.asp")]
 		public void TranspileOne(string fileName)
 		{
 			var folder = Path.GetDirectoryName(fileName);
 			var service = new TranspilerService(@"C:\Work\aspclassiccompiler\aspclassiccompiler\AspWebApp\" + folder,
-				@"C:\Work\aspclassiccompiler\aspclassiccompiler\MvcTestApp\Views\Home\");
+				@"C:\Work\aspclassiccompiler\aspclassiccompiler\MvcTestApp\Views\Home\" + folder);
 
 			service.TranspileSingle(Path.GetFileName(fileName));
 		}
