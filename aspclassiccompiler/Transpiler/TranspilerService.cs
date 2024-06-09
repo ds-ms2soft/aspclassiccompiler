@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using File = System.IO.File;
 
 namespace Transpiler
@@ -8,12 +11,31 @@ namespace Transpiler
 		private readonly string _sourceFolderBase;
 		private readonly string _outputFolderBase;
 
+		private Dictionary<string, TranspileUnit> _unitsByPath;
+		
 		public TranspilerService(string sourceFolderBase, string outputFolderBase)
 		{
 			_sourceFolderBase = sourceFolderBase;
 			_outputFolderBase = outputFolderBase;
 		}
 
+		public void ParseAllFiles()
+		{
+			_unitsByPath = Directory.GetFiles(_sourceFolderBase, "*.asp", SearchOption.AllDirectories).ToDictionary(path => path, TranspileUnit.Parse,StringComparer.OrdinalIgnoreCase);
+		}
+
+		public void IdentifyIncludes()
+		{
+
+		}
+
+		public void ConvertIncludes(string outputFolderBase)
+		{
+
+		}
+
+		public void TranspileNonIncludePages()
+		{}
 		public void Transpile(string relativeFilePath)
 		{
 			string output = Path.Combine(_outputFolderBase,
@@ -30,5 +52,19 @@ namespace Transpiler
 					transpiler.Transpile(unit.Block, razorWriter, unit.Page.Literals);
 				}
 		}
+
+		private void HandleServerSideInclude(string fullPath, RazorWriter output, IdentifierScope scope)
+		{
+			if (!OverrideHandleServerSideInclude(fullPath, output, scope))
+			{
+				
+			}
+		}
+
+		/// <summary>
+		/// Return true if you've handled it.
+		/// </summary>
+		public Func<string, RazorWriter, IdentifierScope, bool> OverrideHandleServerSideInclude { get; set; } =
+			(s, writer, arg3) => false;
 	}
 }

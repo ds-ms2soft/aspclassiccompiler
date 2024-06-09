@@ -82,8 +82,9 @@ namespace Dlrsoft.Asp
                 switch (value.Substring(0, 3))
                 {
                     case "<!-": //Include
-                        processInclude(pagePath, contents.ToLower());
-                        break;
+                        var path = getIncludePath(pagePath, contents);
+                        appendBlock(pagePath, SourceUtil.GetSpan(lineRanges, m.Index, p1 - 1), $"SERVER_SIDE_INCLUDE(\"{path}\")", 1);
+						break;
                     case "<%@": //Declaration. Ignore
                         break;
                     default:
@@ -114,7 +115,7 @@ namespace Dlrsoft.Asp
             return string.Format("response.Write(literals({0}))", _literals.Count - 1);
         }
 
-        private void processInclude(string parent, string spec)
+        private string getIncludePath(string parent, string spec)
         {
             string filePath = null;
             int x = spec.IndexOf('=');
@@ -124,7 +125,7 @@ namespace Dlrsoft.Asp
             {
                 value = value.Substring(1, value.Length - 2);
             }
-            switch(attrib)
+            switch(attrib.ToLowerInvariant())
             {
                 case "file":
                     if (Path.IsPathRooted(value))
@@ -150,7 +151,7 @@ namespace Dlrsoft.Asp
                     throw new ArgumentException("Invalid include spec:" + spec);
             }
 
-            processPage(filePath);
+           return filePath;
         }
 
         private void appendBlock(string filepath, SourceSpan span, string contents, int lines)

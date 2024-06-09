@@ -34,7 +34,7 @@ namespace Transpiler
 			var block = new Parser().ParseScriptFile(scanner, errorTable);
 			if (errorTable.Any())
 			{
-				throw new Exception("Failed to parse file");
+				throw new Exception($"Failed to parse {absolutePath} :\n\n" + String.Join("\n", errorTable.Select(e => e.ToString())));
 			}
 
 			return new TranspileUnit(absolutePath, block, page);
