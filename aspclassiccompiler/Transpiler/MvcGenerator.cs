@@ -120,10 +120,10 @@ namespace Transpiler
 				////{
 				////    return GenerateEqExpr((SymplEqExpr)expr, scope);
 				////}
-				//else if (expr is VB.IfBlockStatement)
-				//{
-				//	return GenerateIfExpr((VB.IfBlockStatement)expr, scope);
-				//}
+				else if (expr is VB.IfBlockStatement @if)
+				{
+					GenerateIfExpr(@if, scope);
+				}
 				//else if (expr is VB.LineIfStatement)
 				//{
 				//	return GenerateIfExpr((VB.LineIfStatement)expr, scope);
@@ -235,6 +235,8 @@ namespace Transpiler
 			}
 		}
 
+		public Action<string, RazorWriter, IdentifierScope> HandleServerSideInclude { get; set; } = (s, writer, arg3) =>
+			throw new NotImplementedException($"Provide HandleServerSideInclude (include: {s})");
 
 		private void ProcessCall(VB.CallStatement statement, IdentifierScope scope)
 		{
@@ -256,6 +258,11 @@ namespace Transpiler
 					//translate this to Html.Raw instead.
 					_output.WriteCode($"@Html.Raw({statement.Arguments.Render(scope)})", true);
 				}
+			}
+			else if (statement.Matches("SERVER_SIDE_INCLUDE"))
+			{
+				var path = ((VB.StringLiteralExpression)statement.Arguments.First().Expression).Literal;
+				HandleServerSideInclude(path, _output, scope);
 			}
 			else
 			{
@@ -350,61 +357,6 @@ namespace Transpiler
 		{
 			var line = expr.TargetExpression.Render(scope) + " = " + expr.SourceExpression.Render(scope);
 			_output.WriteCode(line, true);
-			//var val = GenerateExpr(expr.SourceExpression, scope);
-
-			//if (!expr.IsSetStatement)
-			//{
-			//	val = RuntimeHelpers.GetDefaultValue(val);
-			//}
-
-			//if (expr.TargetExpression is VB.SimpleNameExpression)
-			//{
-			//	var idExpr = (VB.SimpleNameExpression)expr.TargetExpression;
-			//	return GenerateSimpleNameAssignExpr(idExpr, val, scope);
-			//}
-			//else if (expr.TargetExpression is VB.CallOrIndexExpression)
-			//{
-			//	//If LHS is CallOrIndexExpression, it must be an index expression
-			//	var callOrIndex = (VB.CallOrIndexExpression)(expr.TargetExpression);
-			//	var args = new List<Expression>();
-			//	args.Add(GenerateExpr(callOrIndex.TargetExpression, scope));
-			//	args.AddRange(callOrIndex.Arguments.Select(e => GenerateExpr(e.Expression, scope)));
-			//	args.Add(Expression.Convert(val, typeof(object)));
-			//	// Trusting MO convention to return stored values.
-			//	return Expression.Dynamic(
-			//			   scope.GetRuntime().GetSetIndexBinder(
-			//					   new CallInfo(callOrIndex.Arguments.Count)),
-			//			   typeof(object),
-			//			   args);
-			//}
-			//else if (expr.TargetExpression is VB.QualifiedExpression)
-			//{
-			//	// For now, one dot only.  Later, pick oflast dotted member
-			//	// access (like GenerateFunctionCall), and use a temp and block.
-			//	var dottedExpr = (VB.QualifiedExpression)(expr.TargetExpression);
-			//	var id = (VB.SimpleName)(dottedExpr.Name);
-
-			//	Expression qualifier = null;
-			//	if (dottedExpr.Qualifier != null)
-			//	{
-			//		qualifier = GenerateExpr(dottedExpr.Qualifier, scope);
-			//	}
-			//	else
-			//	{
-			//		qualifier = scope.NearestWithExpression;
-			//	}
-
-
-			//	// Trusting MOs convention to return stored values.
-			//	return Expression.Dynamic(
-			//			   scope.GetRuntime().GetSetMemberBinder(id.Name),
-			//			   typeof(object),
-			//			   qualifier,
-			//			   val
-			//	);
-			//}
-
-			//throw new InvalidOperationException("Invalid left hand side type.");
 		}
 
 		private void GenerateForBlockExpr(VB.ForBlockStatement forBlock,
@@ -420,72 +372,6 @@ namespace Transpiler
 			Process(forBlock.Statements, scope, true);
 
 			_output.WriteCode("Next", true);
-			/*var loopscope = new AnalysisScope(scope, "loop ");
-			loopscope.IsForLoop = true; // needed for exit
-			loopscope.LoopBreak = Expression.Label("loop break");
-
-			Expression loopVariable;
-			if (forBlock.ControlExpression is VB.SimpleNameExpression)
-			{
-				loopVariable = FindIdDef(((VB.SimpleNameExpression)forBlock.ControlExpression).Name.Name, scope, true);
-			}
-			else
-			{
-				loopVariable = GenerateExpr(forBlock.ControlExpression, loopscope);
-			}
-			Expression body = GenerateBlockExpr(forBlock.Statements, loopscope);
-
-			LoopExpression myLoop = Expression.Loop(
-				Expression.Block(
-					Expression.IfThen(
-						WrapBooleanTest(
-							GenerateExpr(
-								new VB.BinaryOperatorExpression(
-									forBlock.ControlExpression,
-									VB.OperatorType.GreaterThan,
-									forBlock.ToLocation,
-									forBlock.UpperBoundExpression,
-									forBlock.UpperBoundExpression.Span
-								),
-								loopscope
-							)
-						),
-						Expression.Goto(loopscope.LoopBreak)
-					),
-					body,
-					GenerateExpr(
-						new VB.AssignmentStatement(
-							forBlock.ControlExpression,
-							forBlock.LowerBoundExpression.Span.Start,
-							new VB.BinaryOperatorExpression(
-								forBlock.ControlExpression,
-								VB.OperatorType.Plus,
-								forBlock.ToLocation,
-								forBlock.StepExpression ?? new VB.IntegerLiteralExpression(1, VB.IntegerBase.Decimal, VB.TypeCharacter.None, forBlock.UpperBoundExpression.Span),
-								forBlock.LowerBoundExpression.Span
-							),
-							forBlock.LowerBoundExpression.Span,
-							null
-						),
-						loopscope
-					)
-				),
-				loopscope.LoopBreak
-			);
-
-			return Expression.Block(
-				GenerateExpr(
-					new VB.AssignmentStatement(
-						forBlock.ControlExpression,
-						forBlock.EqualsLocation,
-						forBlock.LowerBoundExpression,
-						forBlock.LowerBoundExpression.Span,
-						null
-					),
-					loopscope
-				),
-				myLoop
-			);*/
 		}
 
 		private void GenerateDoBlockExpr(VB.DoBlockStatement doBlock,
@@ -534,8 +420,6 @@ namespace Transpiler
 		private void GenerateSubExpr(VB.SubDeclaration sub,
 			IdentifierScope scope)
 		{
-			
-			
 			string subName = sub.Name.Name;
 			scope.Define(subName);
 
@@ -543,6 +427,33 @@ namespace Transpiler
 			Process(sub.Statements, scope, true);
 			_output.WriteCode($"End Sub", true);
 		}
+
+		private void GenerateIfExpr(VB.IfBlockStatement ifBlock, IdentifierScope scope)
+		{
+			void writeIf(string type, VB.Expression testExpression, VB.StatementCollection body)
+			{
+				_output.WriteCode($"{type} {testExpression.Render(scope)} Then", true);
+				Process(body, scope, true);
+			}
+
+			writeIf("If", ifBlock.Expression, ifBlock.Statements);
+
+			if (ifBlock.ElseIfBlockStatements != null)
+			{
+				foreach (VB.ElseIfBlockStatement elseIf in ifBlock.ElseIfBlockStatements)
+				{
+					writeIf("ElseIf", elseIf.ElseIfStatement.Expression, elseIf.Statements);
+				}
+			}
+
+			if (ifBlock.ElseBlockStatement != null)
+			{
+				_output.WriteCode("Else", true);
+				Process(ifBlock.ElseBlockStatement.Statements, scope, true);
+			}
+			_output.WriteCode($"End If", true);
+		}
+
 		/*public void GenerateForEachBlockExpr(VB.ForEachBlockStatement forBlock,
 			IdentifierScope scope)
 		{
@@ -1161,40 +1072,6 @@ namespace Transpiler
 	//    return Expression.Call(mi, Expression
 	//                                   .NewArrayInit(typeof(object), args));
 	//}
-
-	public static Expression GenerateIfExpr(VB.IfBlockStatement ifBlock, AnalysisScope scope)
-	{
-		Expression elseBlock = null;
-		if (ifBlock.ElseBlockStatement != null)
-		{
-			elseBlock = GenerateExpr((VB.BlockStatement)ifBlock.ElseBlockStatement, scope);
-		}
-		else
-		{
-			elseBlock = Expression.Empty();
-		}
-
-		if (ifBlock.ElseIfBlockStatements != null && ifBlock.ElseIfBlockStatements.Count > 0)
-		{
-			for (int i = ifBlock.ElseIfBlockStatements.Count - 1; i > -1; i--)
-			{
-				VB.ElseIfBlockStatement elseifBock = (VB.ElseIfBlockStatement)ifBlock.ElseIfBlockStatements.get_Item(i);
-				elseBlock = Expression.Condition(
-						WrapBooleanTest(GenerateExpr(elseifBock.ElseIfStatement.Expression, scope)),
-						GenerateBlockExpr(elseifBock.Statements, scope),
-						elseBlock,
-						typeof(void));
-			}
-		}
-		Expression test = WrapBooleanTest(GenerateExpr(ifBlock.Expression, scope));
-		Expression ifblock = GenerateBlockExpr(ifBlock.Statements, scope);
-
-		return Expression.Condition(
-				   test,
-				   ifblock,
-				   elseBlock,
-				   typeof(void));
-	}
 
 	public static Expression GenerateIfExpr(VB.LineIfStatement ifstmt, AnalysisScope scope)
 	{
