@@ -13,22 +13,6 @@ namespace Transpiler
 		private OutputWriter _output;
 
 		private IReadOnlyList<string> _literals;
-		/*private static HashSet<string> _builtinFunctions;
-		private static HashSet<string> _builtinConstants;
-
-		public static bool IsBuiltInConstants(string name)
-		{
-			ensureBuiltinConstants();
-			return _builtinConstants.Contains(name.ToLower());
-		}
-
-		public static bool IsBuiltInFunction(string name)
-		{
-			ensureBuiltinFunctions();
-
-			return _builtinFunctions.Contains(name.ToLower());
-		}*/
-
 
 		public IdentifierScope Transpile(VB.ScriptBlock script, OutputWriter output, IReadOnlyList<string> literals)
 		{
@@ -81,13 +65,9 @@ namespace Transpiler
 				{
 					ProcessDeclaration(declaration, scope);
 				}
-				//else if (expr is VB.FunctionDeclaration)
-				//{
-				//	return GenerateFunctionExpr((VB.FunctionDeclaration)expr, scope);
-				//}
-				else if (expr is VB.SubDeclaration sub)
+				else if (expr is VB.MethodDeclaration functionDeclaration)
 				{
-					GenerateSubExpr(sub, scope);
+					GenerateMethodExpr(functionDeclaration, scope);
 				}
 				////else if (expr is SymplLambdaExpr)
 				////{
@@ -307,45 +287,11 @@ namespace Transpiler
 				{
 					line += " = " + ei.Expression.Render(scope);
 				}
-				
-					/*if (v.ArrayType == null || v.ArrayType.Arguments.Count == 0)
-					{
-						initExpression = Expression.Constant(null);
-					}
-					else
-					{
-						List<Expression> args = GenerateArgumentList(v.ArrayType.Arguments, scope);
-						Expression converted = ConvertToIntegerArrayExpression(args);
 
-						initExpression = Expression.Call(
-							typeof(HelperFunctions).GetMethod("Redim"),
-							Expression.Constant(typeof(object)),
-							converted
-						);
-						//initExpression = Expression.Convert(
-						//        Expression.NewArrayBounds(
-						//            typeof(object),
-						//            GenerateArgumentList(v.ArrayType.Arguments, scope)
-						//        ),
-						//        typeof(object)
-						//    );
-					}*/
-				
-
-				/*ParameterExpression p;
-				if (scope.IsModule)
+				if (v.ArrayType != null)
 				{
-					//Module variable already put into scope in the analysis phase
-					p = scope.Names[name];
+					line += $"({v.ArrayType.Arguments.Render(scope)})";
 				}
-				else
-				{
-					p = Expression.Parameter(typeof(object), name);
-					scope.VariableScope.Names.Add(name, p);
-				}
-
-				expressions.Add(Expression.Assign(p, Expression.Convert(initExpression, p.Type)));
-				*/
 			}
 			_output.WriteCode(line, true);
 		}
@@ -418,15 +364,33 @@ namespace Transpiler
 			}
 		}
 
-		private void GenerateSubExpr(VB.SubDeclaration sub,
-			IdentifierScope scope)
+		private void GenerateMethodExpr(VB.MethodDeclaration method, IdentifierScope scope)
 		{
-			string subName = sub.Name.Name;
-			scope.Define(subName);
+			string name = method.Name.Name;
+			scope.Define(name);
+			if (method.ResultType != null)
+			{
+				throw new NotImplementedException();
+			}
 
-			_output.WriteCode($"Sub {subName}({sub.Parameters.Render()})", true);
-			Process(sub.Statements, scope, true);
-			_output.WriteCode($"End Sub", true);
+			string keyword;
+			if (method is VB.FunctionDeclaration func)
+			{
+				keyword = "Function";
+			}
+			else if (method is VB.SubDeclaration sub)
+			{
+				keyword = "Sub";
+			}
+			else
+			{
+				throw new NotImplementedException();
+			}
+
+			var methodScope = new IdentifierScope(scope);
+			_output.WriteCode($"{keyword} {name}({method.Parameters.Render(methodScope)})", true);
+			Process(method.Statements, methodScope, true);
+			_output.WriteCode($"End {keyword}", true);
 		}
 
 		private void GenerateIfExpr(VB.IfBlockStatement ifBlock, IdentifierScope scope)
@@ -489,7 +453,7 @@ namespace Transpiler
 
 				isFirst = false;
 
-				code += variable.TargetExpression.Render(scope) + $"[{variable.Arguments.Render(scope)}]";
+				code += variable.TargetExpression.Render(scope) + $"({variable.Arguments.Render(scope)})";
 			}
 
 			_output.WriteCode(code, true);
@@ -664,22 +628,6 @@ namespace Transpiler
 			Expression.Constant(typeNames),
 			Expression.Constant(new string[] {alias})
 		);
-	}
-
-	public static Expression GenerateFunctionExpr(VB.FunctionDeclaration func,
-													  AnalysisScope scope)
-	{
-		if (!scope.IsModule)
-		{
-			throw new InvalidOperationException(
-				"Use Defmethod or Lambda when not defining top-level function.");
-		}
-		string funcName = func.Name.Name.ToLower();
-		Expression lambda = GenerateLambdaDef(func.Parameters, func.Statements, scope, funcName, false);
-		//ParameterExpression p = Expression.Parameter(typeof(object), funcName);
-		//scope.Names.Add(funcName, p);
-		ParameterExpression p = scope.Names[funcName];
-		return Expression.Assign(p, lambda);
 	}
 
 	// Returns a dynamic InvokeMember or Invoke expression, depending on the

@@ -51,9 +51,13 @@ namespace Transpiler
 			{
 				return name;
 			}
+			else if (ParentScope != null)
+			{
+				return ParentScope.GetIdentifier(name);
+			}
 			else
 			{
-				throw new NotImplementedException($"search for identifier: {name}");
+				throw new NotSupportedException($"Identifier not found: {name}");
 			}
 		}
 

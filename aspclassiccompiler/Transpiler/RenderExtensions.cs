@@ -58,14 +58,24 @@ namespace Transpiler
 			}
 		}
 
-		public static string Render(this ParameterCollection parameters)
+		public static string Render(this ParameterCollection parameters, IdentifierScope innerScope)
 		{
-			return parameters != null ? String.Join(", ", parameters.Select(parm => parm.Render())) : null;
+			return parameters != null ? String.Join(", ", parameters.Select(parm => parm.Render(innerScope))) : null;
 		}
 
-		public static string Render(this Parameter parm)
+		public static string Render(this Parameter parm, IdentifierScope innerScope)
 		{
-			throw new NotImplementedException();
+			
+			if (parm.VariableName.ArrayType != null || (parm.Modifiers != null && parm.Modifiers.Count > 0) 
+			    || (parm.Attributes != null && parm.Attributes.Count > 0)
+			    || (parm.Initializer != null))
+			{
+				throw new NotImplementedException();
+			}
+
+			var name = parm.VariableName.Name.Name;
+			innerScope.Define(name);
+			return name;
 		}
 
 		public static string Render(this ArgumentCollection args, IdentifierScope scope)
