@@ -1,4 +1,4 @@
-<% @ LANGUAGE = VBScript %>
+<%@ LANGUAGE = VBScript %>
 <% Option Explicit %>
 <% Response.Buffer=TRue %>
 <% Response.Expires=-1 %>
