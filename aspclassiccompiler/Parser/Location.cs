@@ -12,8 +12,8 @@ namespace Dlrsoft.VBScript.Parser
 	// 
 
 	/// <summary>
-/// Stores source code line and column information.
-/// </summary>
+	/// Stores source code line and column information.
+	/// </summary>
 	public struct Location
 	{
 		private readonly int _Index;
@@ -167,7 +167,7 @@ namespace Dlrsoft.VBScript.Parser
 
 		public override string ToString()
 		{
-			return "(" + Column + "," + Line + ")";
+			return $"(Ln: {Line}, Col: {Column})";
 		}
 
 		public override bool Equals(object obj)
