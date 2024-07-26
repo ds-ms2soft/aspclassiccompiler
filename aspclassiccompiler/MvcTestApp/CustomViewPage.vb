@@ -1,7 +1,11 @@
-﻿Public MustInherit Class CustomViewPage 
+﻿Public MustInherit Class CustomViewPage(of TModel)
+	Inherits System.Web.Mvc.WebViewPage(of TModel)
+
+End Class
+
+Public MustInherit Class CustomViewPage 
 	Inherits System.Web.Mvc.WebViewPage
 
-	
 	private _dataConn As AdoConnectionAdapter
 	Public ReadOnly Property DataConn As AdoConnectionAdapter
 		Get

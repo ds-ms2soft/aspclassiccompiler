@@ -151,7 +151,7 @@ namespace Transpiler
 				}
 
 				var variableName = "_" + include.IncludeClassName.Split('.').Last();
-				output.WriteCode($"Dim {variableName} = New {include.IncludeClassName}(Page)", true);
+				output.WriteCode($"Dim {variableName} = New {include.IncludeClassName}(Me)", true);
 				scope.MapToVariable(include.IncludeScope, variableName);
 			}
 		}

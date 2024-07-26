@@ -15,6 +15,10 @@ namespace Transpiler
 			{
 				return $"\"{sl.Literal}\"";
 			}
+			else if (exp is DateLiteralExpression dt)
+			{
+				return "DateTime.Parse(\"" + dt.Value + "\")";
+			}
 			else if (exp is LiteralExpression lit)
 			{
 				return lit.Value.ToString();

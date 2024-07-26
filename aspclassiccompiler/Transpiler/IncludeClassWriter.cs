@@ -67,7 +67,7 @@ namespace Transpiler
 		{
 			if (!String.IsNullOrWhiteSpace(text)) //Maybe ignore whitespace literals?? Probably just spacing between tags?
 			{
-				WriteCode("Raw(\"\"\"" + text + "\"\"\")", true);
+				WriteCode("Raw(\"" + text + "\")", true);
 			}
 		}
 

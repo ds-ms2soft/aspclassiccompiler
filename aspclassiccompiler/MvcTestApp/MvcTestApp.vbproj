@@ -223,6 +223,28 @@
     <Content Include="Scripts\bootstrap.bundle.min.js.map" />
     <Content Include="Scripts\bootstrap.bundle.js.map" />
     <Content Include="Views\Home\ViewPage1.vbhtml" />
+    <Content Include="Views\Home\Simple\Arrays.Asp.Vbhtml" />
+    <Content Include="Views\Home\Simple\Components.Asp.Vbhtml" />
+    <Content Include="Views\Home\Simple\Conditional.Asp.Vbhtml" />
+    <Content Include="Views\Home\Simple\Functions.Asp.Vbhtml" />
+    <Content Include="Views\Home\Simple\Includes.Asp.Vbhtml" />
+    <Content Include="Views\Home\Simple\Looping.Asp.Vbhtml" />
+    <Content Include="Views\Home\Simple\Variables.Asp.Vbhtml" />
+    <Content Include="Views\Home\Database\AddDelete.Asp.Vbhtml" />
+    <Content Include="Views\Home\Database\LimitRows.Asp.Vbhtml" />
+    <Content Include="Views\Home\Database\SimpleQuery.Asp.Vbhtml" />
+    <Content Include="Views\Home\Database\StoredProcedures.Asp.Vbhtml" />
+    <Content Include="Views\Home\Database\Update.Asp.Vbhtml" />
+    <Content Include="Views\Home\components\AdRotator.Asp.Vbhtml" />
+    <Content Include="Views\Home\components\BrowserCap.Asp.Vbhtml" />
+    <Content Include="Views\Home\components\CDO.Asp.Vbhtml" />
+    <Content Include="Views\Home\components\ContentRotator.Asp.Vbhtml" />
+    <Content Include="Views\Home\components\Counters\Sample\Counters_VBScript.Asp.Vbhtml" />
+    <Content Include="Views\Home\components\FileSystem.Asp.Vbhtml" />
+    <Content Include="Views\Home\components\PermissionCheck.Asp.Vbhtml" />
+    <Content Include="Views\Home\components\Tools.Asp.Vbhtml" />
+    <Content Include="Views\Home\test\BuiltinConstants.Asp.Vbhtml" />
+    <Content Include="Views\Home\test\byref.Asp.Vbhtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="favicon.ico" />

@@ -4,8 +4,14 @@ Namespace Includes.Simple
 		
 		public Sub New(page As System.Web.Mvc.WebViewPage)
 			MyBase.New(page)
-			Raw("""<B>This text is coming from HeaderInfo.asp.</B>
-""")
+			Raw("<B>This text is coming from HeaderInfo.asp.</B>
+<pre>
+	This is testing
+	line
+	br
+	  eaks and white space
+</pre>
+")
 		End Sub
 
 		Public Sub OutputDynamicText()

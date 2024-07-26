@@ -125,10 +125,10 @@ namespace Transpiler
 				{
 					GenerateForEachBlockExpr(forEach, scope);
 				}*/
-				//else if (expr is VB.WhileBlockStatement)
-				//{
-				//	return GenerateWhileBlockExpr((VB.WhileBlockStatement)expr, scope);
-				//}
+				else if (expr is VB.WhileBlockStatement @while)
+				{
+					GenerateWhileBlockExpr(@while, scope);
+				}
 				else if (expr is VB.DoBlockStatement @do)
 				{
 					GenerateDoBlockExpr(@do, scope);
@@ -362,6 +362,14 @@ namespace Transpiler
 				}
 				*/
 			}
+		}
+
+		public void GenerateWhileBlockExpr(VB.WhileBlockStatement whileBlock,
+			IdentifierScope scope)
+		{
+			_output.WriteCode($"While {whileBlock.Expression.Render(scope)}", true);
+			Process(whileBlock.Statements, scope, true);
+			_output.WriteCode("End While", true);
 		}
 
 		private void GenerateMethodExpr(VB.MethodDeclaration method, IdentifierScope scope)
@@ -1045,29 +1053,7 @@ namespace Transpiler
 				   typeof(void));
 	}
 
-
-		
-
-	public static Expression GenerateWhileBlockExpr(VB.WhileBlockStatement whileBlock,
-											  AnalysisScope scope)
-	{
-		var breakTarget = Expression.Label("loop break");
-		var body = GenerateBlockExpr(whileBlock.Statements, scope);
-		return Expression.Loop(
-			Expression.Block(
-				Expression.IfThenElse(
-					WrapBooleanTest(
-						GenerateExpr(whileBlock.Expression, scope)
-					),
-					Expression.Empty(),
-					Expression.Goto(breakTarget)
-				),
-				body
-			),
-			breakTarget
-		);
-	}
-
+	
 	public static Expression GenerateWithBlockExpr(VB.WithBlockStatement withBlock,
 											AnalysisScope scope)
 	{
