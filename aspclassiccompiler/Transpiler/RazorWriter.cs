@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Transpiler
 {
-	public class RazorWriter: OutputWriter
+	public class RazorWriter: OutputWriter, IDisposable
 	{
 		public enum States
 		{
@@ -133,6 +133,12 @@ namespace Transpiler
 
 				CurrentState = newState;
 			}
+		}
+
+		public void Dispose()
+		{
+			TransitionToState(States.Literal); //This will close any block we are in.
+			_underlying?.Dispose();
 		}
 	}
 

@@ -20,10 +20,21 @@ namespace Transpiler
 			_output = output;
 			_literals = literals;
 			var globalScope = IdentifierScope.MakeGlobal();
+			AddSubAndMethodDeclarationsToScope(_script.Statements, globalScope);
 			Process(_script.Statements, globalScope, false);
 			return globalScope;
 		}
 
+		private void AddSubAndMethodDeclarationsToScope(VB.StatementCollection statements, IdentifierScope scope)
+		{
+			foreach (VB.Statement statement in statements)
+			{
+				if (statement is VB.MethodDeclaration md) //SubDeclaration is a derived class, so this handles both.
+				{
+					scope.Define(md.Name.Name);
+				}
+			}
+		}
 		private void Process(VB.StatementCollection statements, IdentifierScope scope, bool beginBlock)
 		{
 			var block = beginBlock ? _output.BeginBlock() : null;
@@ -375,7 +386,7 @@ namespace Transpiler
 		private void GenerateMethodExpr(VB.MethodDeclaration method, IdentifierScope scope)
 		{
 			string name = method.Name.Name;
-			scope.Define(name);
+			//Don't need this, because we need to be added to scope before we are generated: scope.Define(name);
 			if (method.ResultType != null)
 			{
 				throw new NotImplementedException();

@@ -136,8 +136,10 @@ namespace Transpiler
 			using (var outFile = File.Open(output, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
 			using (var writer = new StreamWriter(outFile))
 			{
-				var razorWriter = new RazorWriter(writer);
-				transpiler.Transpile(unit.Block, razorWriter, unit.Page.Literals);
+				using (var razorWriter = new RazorWriter(writer))
+				{
+					transpiler.Transpile(unit.Block, razorWriter, unit.Page.Literals);
+				}
 			}
 		}
 

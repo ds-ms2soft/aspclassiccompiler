@@ -79,7 +79,8 @@ namespace Transpiler
 
 			var name = parm.VariableName.Name.Name;
 			innerScope.Define(name);
-			return name;
+			var rv = "ByRef " + name; //TODO: VBS is byref by default, I'm hoping any byval params will cause the above to throw, so I can fix them.
+			return rv;
 		}
 
 		public static string Render(this ArgumentCollection args, IdentifierScope scope)

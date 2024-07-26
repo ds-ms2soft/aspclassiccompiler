@@ -14,6 +14,7 @@ namespace Transpiler
 		[TestCase("Simple\\Functions.asp")]
 		[TestCase("Simple\\Looping.asp")]
 		[TestCase("Simple\\Variables.asp")]
+		[TestCase("test\\byref.asp")]
 		public void TranspileOne(string fileName)
 		{
 			var folder = Path.GetDirectoryName(fileName);
