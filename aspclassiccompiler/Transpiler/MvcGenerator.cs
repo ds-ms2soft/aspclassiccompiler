@@ -40,7 +40,7 @@ namespace Transpiler
 			var block = beginBlock ? _output.BeginBlock() : null;
 			try
 			{
-				foreach (VB.Statement statement in statements)
+				foreach (VB.Statement statement in statements ?? Array.Empty<VB.Statement>().AsEnumerable())
 				{
 					Process(statement, scope);
 				}
@@ -325,7 +325,7 @@ namespace Transpiler
 				throw new NotImplementedException();
 			}
 			
-			_output.WriteCode($"For {forBlock.ControlExpression.Render(scope)} = {forBlock.LowerBoundExpression.Render(scope)} To {forBlock.UpperBoundExpression.Render(scope)}", true);
+			_output.WriteCode($"For {forBlock.ControlExpression.Render(scope, true)} = {forBlock.LowerBoundExpression.Render(scope)} To {forBlock.UpperBoundExpression.Render(scope)}", true);
 
 			Process(forBlock.Statements, scope, true);
 

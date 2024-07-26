@@ -6,10 +6,10 @@ namespace Transpiler
 {
 	public static class RenderExtensions
 	{
-		public static string Render(this SimpleName sn, IdentifierScope scope)
-			=> scope.GetIdentifier(sn.Name);
+		public static string Render(this SimpleName sn, IdentifierScope scope, bool allowUndefined)
+			=> scope.GetIdentifier(sn.Name, allowUndefined);
 
-		public static string Render(this Expression exp, IdentifierScope scope)
+		public static string Render(this Expression exp, IdentifierScope scope, bool allowUndefinedVariables = false)
 		{
 			if (exp is StringLiteralExpression sl)
 			{
@@ -25,7 +25,7 @@ namespace Transpiler
 			}
 			else if (exp is SimpleNameExpression sne)
 			{
-				return sne.Name.Render(scope);
+				return sne.Name.Render(scope, allowUndefinedVariables);
 			}
 			else if (exp is CallOrIndexExpression cie)
 			{
@@ -69,8 +69,29 @@ namespace Transpiler
 
 		public static string Render(this Parameter parm, IdentifierScope innerScope)
 		{
-			
-			if (parm.VariableName.ArrayType != null || (parm.Modifiers != null && parm.Modifiers.Count > 0) 
+			var rv = "ByRef "; //VBS is byref by default
+
+			if (parm.Modifiers != null && parm.Modifiers.Count > 0)
+			{
+				if (parm.Modifiers.Count != 1)
+				{
+					throw new NotImplementedException("Haven't supported more than one parameter modifier.");
+				}
+
+				switch (parm.Modifiers.get_Item(0).ModifierType)
+				{
+					case ModifierTypes.ByRef:
+					rv = "ByRef ";
+					break;
+					case ModifierTypes.ByVal:
+						rv = "ByVal ";
+						break;
+					default:
+						throw new NotImplementedException(
+							"Unknown modifier: " + parm.Modifiers.get_Item(0).ModifierType);
+				}
+			}
+			if (parm.VariableName.ArrayType != null 
 			    || (parm.Attributes != null && parm.Attributes.Count > 0)
 			    || (parm.Initializer != null))
 			{
@@ -79,8 +100,8 @@ namespace Transpiler
 
 			var name = parm.VariableName.Name.Name;
 			innerScope.Define(name);
-			var rv = "ByRef " + name; //TODO: VBS is byref by default, I'm hoping any byval params will cause the above to throw, so I can fix them.
-			return rv;
+
+			return rv + name;
 		}
 
 		public static string Render(this ArgumentCollection args, IdentifierScope scope)

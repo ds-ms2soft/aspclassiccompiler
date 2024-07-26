@@ -41,7 +41,10 @@ namespace Transpiler
 			_identifiers[name] = actual ?? name;
 		}
 
-		public string GetIdentifier(string name)
+		public string GetIdentifier(string name, bool allowUndefined)
+			=> GetIdentifier(name, allowUndefined, true);
+
+		private string GetIdentifier(string name, bool defineIfMissing, bool throwIfNotFound)
 		{
 			if (_identifiers.TryGetValue(name, out var identifier))
 			{
@@ -51,13 +54,29 @@ namespace Transpiler
 			{
 				return name;
 			}
-			else if (ParentScope != null)
-			{
-				return ParentScope.GetIdentifier(name);
-			}
 			else
 			{
-				throw new NotSupportedException($"Identifier not found: {name}");
+				string rv = null;
+				if (ParentScope != null)
+				{
+					rv = ParentScope.GetIdentifier(name, false, false);
+				}
+
+				if (rv == null)
+				{
+					if (defineIfMissing)
+					{
+						//TODO: hook here and define the names higher up?
+						Define(name);
+						rv = name;
+					}
+					else if (throwIfNotFound)
+					{
+						throw new NotSupportedException($"Identifier not found: {name}");
+					}
+				}
+
+				return rv;
 			}
 		}
 

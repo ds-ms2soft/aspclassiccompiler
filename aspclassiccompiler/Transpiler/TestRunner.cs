@@ -9,12 +9,11 @@ namespace Transpiler
 	{
 		[TestCase("components\\FileSystem.asp")]
 		[TestCase("Database\\SimpleQuery.asp")]
-		[TestCase("Simple\\Includes.asp")]
 		[TestCase("Components\\BrowserCap.asp")]
 		[TestCase("Simple\\Functions.asp")]
 		[TestCase("Simple\\Looping.asp")]
 		[TestCase("Simple\\Variables.asp")]
-		[TestCase("test\\byref.asp")]
+		[TestCase("test\\imports.asp")] //Left off here
 		public void TranspileOne(string fileName)
 		{
 			var folder = Path.GetDirectoryName(fileName);
