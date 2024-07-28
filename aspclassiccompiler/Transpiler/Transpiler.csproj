@@ -18,7 +18,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Scripting">
-      <HintPath>..\AspWebApp\Bin\Microsoft.Scripting.dll</HintPath>
+      <HintPath>..\library\40\Microsoft.Scripting.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
