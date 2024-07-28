@@ -9,12 +9,15 @@ namespace Transpiler
 		{
 			foreach (var child in block.Children)
 			{
-				if (child is T found)
+				if (child != null)
 				{
-					visitor(found);
-				}
+					if (child is T found)
+					{
+						visitor(found);
+					}
 
-				VisitAll(child, visitor);
+					VisitAll(child, visitor);
+				}
 			}
 		}
 	}
