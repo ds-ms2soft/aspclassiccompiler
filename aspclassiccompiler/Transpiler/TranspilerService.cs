@@ -29,7 +29,11 @@ namespace Transpiler
 		/// </summary>
 		public int ParseAllFiles()
 		{
-			_unitsByPath = Directory.GetFiles(_sourceFolderBase, "*.asp", SearchOption.AllDirectories).ToDictionary(path => path, TranspileUnit.Parse,StringComparer.OrdinalIgnoreCase);
+			var all = Directory.GetFiles(_sourceFolderBase, "*.asp", SearchOption.AllDirectories)
+				.Where(x => Path.GetExtension(x) == ".asp"); //filter out .aspx
+			
+			
+			_unitsByPath = all.ToDictionary(path => path, TranspileUnit.Parse,StringComparer.OrdinalIgnoreCase);
 			return _unitsByPath.Count(unit => unit.Value.HasErrors);
 		}
 
