@@ -23,14 +23,14 @@ namespace Transpiler
 
 		private static bool ShowOldBanner { get; set; }
 
-		private static bool OverrideVariableDeclaration(string arg)
+		private static string OverrideVariableDeclaration(string varName)
 		{
-			if ("CompileTime_showOldBanner".Equals(arg, StringComparison.OrdinalIgnoreCase))
+			if ("CompileTime_showOldBanner".Equals(varName, StringComparison.OrdinalIgnoreCase))
 			{
-				return true;
+				return null;
 			}
-
-			return false;
+			
+			return varName;
 		}
 
 		protected override MvcGenerator MakeGeneratorForFile()

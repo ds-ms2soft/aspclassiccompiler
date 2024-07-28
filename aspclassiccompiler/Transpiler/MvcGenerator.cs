@@ -285,7 +285,9 @@ namespace Transpiler
 			bool isFirstVariable = true;
 			foreach (VB.VariableName v in declare.VariableNames)
 			{
-				if (!OverrideVariableDeclaration(v.Name.Name))
+				var originalName = v.Name.Name;
+				var name = OverrideVariableDeclaration(originalName);
+				if (name != null)
 				{
 					if (!isFirstVariable)
 					{
@@ -297,7 +299,10 @@ namespace Transpiler
 					}
 
 					scope.Define(v.Name.Name);
-					string name = v.Name.Name;
+					if (originalName != name)
+					{
+						scope.Define(originalName, name);
+					}
 					line += name;
 
 					if (declare.Initializer is VB.ExpressionInitializer ei)
@@ -319,7 +324,7 @@ namespace Transpiler
 			}
 		}
 
-		public Func<string, bool> OverrideVariableDeclaration { get; set; } = (x) => false;
+		public Func<string, string> OverrideVariableDeclaration { get; set; } = (x) => x;
 		public Func<string, string, bool> OverrideVariableAssign { get; set; } = (variable, value) => false;
 
 		// GenerateAssignExpr handles IDs, indexing, and member sets.  IDs are either
