@@ -15,6 +15,9 @@ namespace Transpiler
 
 		private Dictionary<string, TranspileUnit> _unitsByPath;
 		private HashSet<string> _includePagesByPath;
+		private string _includeBaseClassName;
+		private string _includeFileOutputFolder;
+		private string _includeNamespaceRoot;
 
 		public IEnumerable<string> IncludePages => _includePagesByPath ?? (IEnumerable<string>)Array.Empty<string>();
 
@@ -47,36 +50,69 @@ namespace Transpiler
 					if (exp.Matches(AspPageDom.ServerSideInclude))
 					{
 						var path = ((StringLiteralExpression)exp.Arguments.First().Expression).Literal;
+						path = Path.GetFullPath(path);
 						_includePagesByPath.Add(path);
 					}
 				});
 			}
 		}
 
-		public void TranspileIncludes(string relativeOutputFolder, string namespaceRoot, string baseClassName)
+		public void ConfigureIncludeProcessing(string relativeOutputFolder, string namespaceRoot, string baseClassName)
 		{
-			foreach (var path in _includePagesByPath)
+			_includeFileOutputFolder = Path.GetFullPath(Path.Combine(_outputFolderBase, relativeOutputFolder));
+			_includeNamespaceRoot = namespaceRoot;
+			_includeBaseClassName = baseClassName;
+		}
+
+		public TranspileUnit EnsureIncludeTranspiled(string fullPath)
+		{
+			try
 			{
-				if (!_unitsByPath.TryGetValue(path, out var unit))
+				if (!_unitsByPath.TryGetValue(fullPath, out var unit))
 				{
-					_unitsByPath[path] = unit = TranspileUnit.Parse(path);
+					_unitsByPath[fullPath] = unit = TranspileUnit.Parse(fullPath);
 				}
-				var output = MakeNewFileOutputPath(Path.Combine(_outputFolderBase, relativeOutputFolder), path, ".vb", out var subFolders);
 
-				var transpiler = new MvcGenerator();
-
-				using (var outFile = File.Open(output, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
-				using (var writer = new StreamWriter(outFile))
-				using (var classWriter = new IncludeClassWriter(writer))
+				if (unit.IncludeClassName == null)
 				{
-					classWriter.Namespace = namespaceRoot + String.Join("", subFolders.Select(part => "." + part));
-					classWriter.BaseClass = baseClassName;
-					classWriter.ClassName = Path.GetFileNameWithoutExtension(new FileInfo(path).Name); //Filename controls the case
-					var scope = transpiler.Transpile(unit.Block, classWriter, unit.Page.Literals);
-					unit.IncludeClassName = String.Join(".", classWriter.Namespace, classWriter.ClassName);
-					unit.IncludeScope = scope;
+					var output = MakeNewFileOutputPath(_includeFileOutputFolder, fullPath,
+						".vb", out var subFolders);
+					//Note: we need to transpile the file, even if we already have file output, (from a prior run),
+					//because we need to know the scope of the variables and functions defined in the include.
+					var transpiler = MakeGeneratorForFile();
+
+					using (var outFile = File.Open(output, FileMode.Create, FileAccess.ReadWrite,
+						       FileShare.ReadWrite))
+					using (var writer = new StreamWriter(outFile))
+					using (var classWriter = new IncludeClassWriter(writer))
+					{
+						classWriter.Namespace = _includeNamespaceRoot +
+						                        String.Join("", subFolders.Select(part => "." + part));
+						classWriter.BaseClass = _includeBaseClassName;
+						classWriter.ClassName =
+							Path.GetFileNameWithoutExtension(new FileInfo(fullPath).Name); //Filename controls the case
+						var scope = transpiler.Transpile(unit.Block, classWriter, unit.Page.Literals);
+						unit.IncludeClassName = String.Join(".", classWriter.Namespace, classWriter.ClassName);
+						unit.IncludeScope = scope;
+					}
+					SetLastWrite(output, fullPath); //Set this to match the input, even if we can't use it as an optimization to prevent processing again.
 				}
+				return unit;
 			}
+			catch (Exception ex)
+			{
+				throw new Exception($"Failed to transpile include: {fullPath}", ex);
+			}
+		}
+
+		private static bool IsOutputCurrent(string input, string output)
+		{
+			return File.Exists(output) && File.GetLastWriteTime(input) == File.GetLastWriteTime(output);
+		}
+
+		private static void SetLastWrite(string input, string output)
+		{
+			File.SetLastWriteTime(output, File.GetLastWriteTime(input));
 		}
 
 		/// <summary>
@@ -86,8 +122,11 @@ namespace Transpiler
 		/// </summary>
 		private string MakeNewFileOutputPath(string rootOutputFolder, string path, string newExtension, out string[] subFolders)
 		{
-			subFolders = Path.GetDirectoryName(path).Substring(_sourceFolderBase.Length).Split(Path.DirectorySeparatorChar);
-				
+			subFolders = Path.GetDirectoryName(path)
+				.Substring(_sourceFolderBase.Length)
+				.TrimStart(Path.DirectorySeparatorChar)
+				.Split(new []{Path.DirectorySeparatorChar}, StringSplitOptions.RemoveEmptyEntries);
+			
 			var output = Path.Combine(rootOutputFolder, String.Join(Path.DirectorySeparatorChar.ToString(), subFolders), 
 				Path.GetFileNameWithoutExtension(path) + newExtension);
 
@@ -128,44 +167,46 @@ namespace Transpiler
 			TranspileSingle(path, unit);
 		}
 
-		public void TranspileSingle(string filePath, TranspileUnit unit)
+		public virtual void TranspileSingle(string filePath, TranspileUnit unit)
 		{
 			var output = MakeNewFileOutputPath(_outputFolderBase, filePath, ".Asp.Vbhtml", out _);
 
-			var transpiler = new MvcGenerator()
+			if (!IsOutputCurrent(filePath, output))
 			{
-				HandleServerSideInclude = HandleServerSideInclude
-			};
-
-			using (var outFile = File.Open(output, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
-			using (var writer = new StreamWriter(outFile))
-			{
-				using (var razorWriter = new RazorWriter(writer))
+				var transpiler = new MvcGenerator()
 				{
-					transpiler.Transpile(unit.Block, razorWriter, unit.Page.Literals);
+					HandleServerSideInclude = HandleServerSideInclude
+				};
+
+				using (var outFile = File.Open(output, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
+				using (var writer = new StreamWriter(outFile))
+				{
+					using (var razorWriter = new RazorWriter(writer))
+					{
+						transpiler.Transpile(unit.Block, razorWriter, unit.Page.Literals);
+					}
 				}
+				SetLastWrite(filePath, output);
 			}
 		}
 
-		private void HandleServerSideInclude(string fullPath, OutputWriter output, IdentifierScope scope)
+		protected virtual void HandleServerSideInclude(string fullPath, OutputWriter output, IdentifierScope scope)
 		{
-			if (!OverrideHandleServerSideInclude(fullPath, output, scope))
-			{
-				if (!_unitsByPath.TryGetValue(fullPath, out var include))
-				{
-					throw new Exception($"Missing a referenced include file: {fullPath}");
-				}
-
-				var variableName = "_" + include.IncludeClassName.Split('.').Last();
-				output.WriteCode($"Dim {variableName} = New {include.IncludeClassName}(Me)", true);
-				scope.MapToVariable(include.IncludeScope, variableName);
-			}
+			HandleServerSideInclude(fullPath, output, scope, null);
 		}
 
-		/// <summary>
-		/// Return true if you've handled it.
-		/// </summary>
-		public Func<string, OutputWriter, IdentifierScope, bool> OverrideHandleServerSideInclude { get; set; } =
-			(s, writer, arg3) => false;
+		protected void HandleServerSideInclude(string fullPath, OutputWriter output, IdentifierScope scope, string initializer)
+		{
+			var include = EnsureIncludeTranspiled(fullPath);
+
+			var variableName = "_" + include.IncludeClassName.Split('.').Last();
+			output.WriteCode($"Dim {variableName} = New {include.IncludeClassName}{initializer ?? "(Me)"}", true);
+			scope.MapToVariable(include.IncludeScope, variableName);
+		}
+
+		protected virtual MvcGenerator MakeGeneratorForFile() => new MvcGenerator()
+		{
+			HandleServerSideInclude = HandleServerSideInclude
+		};
 	}
 }
