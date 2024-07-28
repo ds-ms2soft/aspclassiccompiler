@@ -47,33 +47,36 @@ namespace Transpiler
 		}
 
 		public string GetIdentifier(string name, bool allowUndefined)
-			=> GetIdentifier(name, allowUndefined, true);
+			// ReSharper disable once ConditionalTernaryEqualBranch
+			=> GetIdentifier(name, allowUndefined, true, out var found) ? found : found;
 
-		private string GetIdentifier(string name, bool defineIfMissing, bool throwIfNotFound)
+		private bool GetIdentifier(string name, bool defineIfMissing, bool throwIfNotFound, out string found)
 		{
-			if (_identifiers.TryGetValue(name, out var identifier))
+			if (_identifiers.TryGetValue(name, out found))
 			{
-				return identifier;
+				return true;
 			}
 			else if (VBScriptGenerator.IsBuiltInConstants(name) || VBScriptGenerator.IsBuiltInFunction(name))
 			{
-				return name;
+				found = name;
+				return true;
 			}
 			else
 			{
-				string rv = null;
+				var rv = false;
 				if (ParentScope != null)
 				{
-					rv = ParentScope.GetIdentifier(name, false, false);
+					rv = ParentScope.GetIdentifier(name, false, false, out found);
 				}
 
-				if (rv == null)
+				if (!rv)
 				{
 					if (defineIfMissing)
 					{
 						_undefinedIdentifiers.Add(name);
 						Define(name);
-						rv = name;
+						found = name;
+						rv = true;
 					}
 					else if (throwIfNotFound)
 					{
