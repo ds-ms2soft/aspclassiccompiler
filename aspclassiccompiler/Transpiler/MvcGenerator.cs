@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Dlrsoft.Asp;
 using VB = Dlrsoft.VBScript.Parser;
 
 namespace Transpiler
 {
-	internal class MvcGenerator
+	public class MvcGenerator
 	{
 		private VB.ScriptBlock _script;
 
@@ -14,12 +15,15 @@ namespace Transpiler
 
 		private IReadOnlyList<string> _literals;
 
+		public Action<IdentifierScope> AddToGlobalScope { get; set; }
+
 		public IdentifierScope Transpile(VB.ScriptBlock script, OutputWriter output, IReadOnlyList<string> literals)
 		{
 			_script = script;
 			_output = output;
 			_literals = literals;
 			var globalScope = IdentifierScope.MakeGlobal();
+			AddToGlobalScope?.Invoke(globalScope);
 			AddSubAndMethodDeclarationsToScope(_script.Statements, globalScope);
 			Process(_script.Statements, globalScope, false);
 			return globalScope;
@@ -254,7 +258,7 @@ namespace Transpiler
 			}
 			else if (statement.Matches(AspPageDom.ServerSideInclude))
 			{
-				var path = ((VB.StringLiteralExpression)statement.Arguments.First().Expression).Literal;
+				var path = Path.GetFullPath(((VB.StringLiteralExpression)statement.Arguments.First().Expression).Literal);
 				HandleServerSideInclude(path, _output, scope);
 			}
 			else
@@ -275,38 +279,48 @@ namespace Transpiler
 				throw new NotImplementedException("Unexpected declarators");
 			}
 
-			var delcare = stmt.VariableDeclarators.ElementAt(0);
-			string line = stmt.Modifiers.ElementAt(0) + " ";
-
+			var declare = stmt.VariableDeclarators.ElementAt(0);
+			string line = "";
 			
 			bool isFirstVariable = true;
-			foreach (VB.VariableName v in delcare.VariableNames)
+			foreach (VB.VariableName v in declare.VariableNames)
 			{
-				if (!isFirstVariable)
+				if (!OverrideVariableDeclaration(v.Name.Name))
 				{
-					line += ", ";
-				}
-				else
-				{
-					isFirstVariable = false;
-				}
+					if (!isFirstVariable)
+					{
+						line += ", ";
+					}
+					else
+					{
+						isFirstVariable = false;
+					}
 
-				scope.Define(v.Name.Name);
-				string name = v.Name.Name;
-				line += name;
+					scope.Define(v.Name.Name);
+					string name = v.Name.Name;
+					line += name;
 
-				if (delcare.Initializer is VB.ExpressionInitializer ei)
-				{
-					line += " = " + ei.Expression.Render(scope);
-				}
+					if (declare.Initializer is VB.ExpressionInitializer ei)
+					{
+						line += " = " + ei.Expression.Render(scope);
+					}
 
-				if (v.ArrayType != null)
-				{
-					line += $"({v.ArrayType.Arguments.Render(scope)})";
+					if (v.ArrayType != null)
+					{
+						line += $"({v.ArrayType.Arguments.Render(scope)})";
+					}
 				}
 			}
-			_output.WriteCode(line, true);
+
+			if (line.Length > 0)
+			{
+				line = stmt.Modifiers.ElementAt(0) + " " + line;
+				_output.WriteCode(line, true);
+			}
 		}
+
+		public Func<string, bool> OverrideVariableDeclaration { get; set; } = (x) => false;
+		public Func<string, string, bool> OverrideVariableAssign { get; set; } = (variable, value) => false;
 
 		// GenerateAssignExpr handles IDs, indexing, and member sets.  IDs are either
 		// lexical or dynamic exprs on the module scope.  Everything
@@ -315,8 +329,13 @@ namespace Transpiler
 		private void GenerateAssignExpr(VB.AssignmentStatement expr, IdentifierScope scope)
 		{
 			//TODO: allowing assign to undefined variables, could move this to a setting or something.
-			var line = expr.TargetExpression.Render(scope, true) + " = " + expr.SourceExpression.Render(scope);
-			_output.WriteCode(line, true);
+			var variable = expr.TargetExpression.Render(scope, true);
+			var value = expr.SourceExpression.Render(scope);
+
+			if (!OverrideVariableAssign(variable, value))
+			{
+				_output.WriteCode(variable + " = " + value, true);
+			}
 		}
 
 		private void GenerateForBlockExpr(VB.ForBlockStatement forBlock,
