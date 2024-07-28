@@ -19,3 +19,4 @@ _[Ss]cripts
 /aspclassiccompiler/MvcTestApp/Temp/MyTextFile.txt
 /aspclassiccompiler/AspWebApp/components/MyTextFile.txt
 /aspclassiccompiler/MvcTestApp/Components/MyTextFile.txt
+/aspclassiccompiler/MvcTestApp/Views/Home/*
