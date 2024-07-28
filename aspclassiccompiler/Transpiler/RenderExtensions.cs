@@ -13,7 +13,7 @@ namespace Transpiler
 		{
 			if (exp is StringLiteralExpression sl)
 			{
-				return $"\"{sl.Literal}\"";
+				return $"\"{sl.Literal.Replace("\"", "\"\"")}\"";
 			}
 			else if (exp is DateLiteralExpression dt)
 			{
