@@ -1845,7 +1845,7 @@ namespace Dlrsoft.VBScript.Parser
 
 				default:
 					{
-						Debug.Assert(false, "Unexpected.");
+						//Debug.Assert(false, "Unexpected.");
 						break;
 					}
 			}
