@@ -38,9 +38,12 @@ namespace Transpiler
 			return rv;
 		}
 
-		public virtual void Define(string name, string actual = null)
+		public void Define(string name)
+			=> Define(name, name);
+
+		public virtual void Define(string name, string actual)
 		{
-			_identifiers[name] = actual ?? name;
+			_identifiers[name] = actual;
 		}
 
 		public string GetIdentifier(string name, bool allowUndefined)

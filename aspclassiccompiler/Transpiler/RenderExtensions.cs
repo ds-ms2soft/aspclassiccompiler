@@ -33,7 +33,8 @@ namespace Transpiler
 			}
 			else if (exp is QualifiedExpression qe)
 			{
-				return qe.Qualifier.Render(scope) + "." + qe.Name.Name;
+				//This handles cases where we want to support a qualifier being removed (i.e. defined as null)
+				return String.Join(".", new[]{qe.Qualifier.Render(scope), qe.Name.Name}.Where(name => !String.IsNullOrEmpty(name)));
 			}
 			else if (exp is BinaryOperatorExpression binary)
 			{
