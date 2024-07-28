@@ -117,7 +117,7 @@ namespace Transpiler
 		}
 
 		public static string Render(this ArgumentCollection args, IdentifierScope scope)
-		 => args != null ? String.Join(", ", args.Select(arg => arg.Render(scope))) : null;
+		 => args != null ? String.Join(", ", args.Select(arg => arg?.Render(scope))) : null;
 
 		public static string Render(this Argument arg, IdentifierScope scope)
 		{
