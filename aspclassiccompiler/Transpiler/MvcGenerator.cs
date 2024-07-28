@@ -144,10 +144,10 @@ namespace Transpiler
 				{
 					GenerateDoBlockExpr(@do, scope);
 				}
-				//else if (expr is VB.WithBlockStatement)
-				//{
-				//	return GenerateWithBlockExpr((VB.WithBlockStatement)expr, scope);
-				//}
+				else if (expr is VB.WithBlockStatement with)
+				{
+					GenerateWithBlockExpr(with, scope);
+				}
 				//else if (expr is VB.ExitStatement)
 				//{
 				//	return GenerateBreakExpr((VB.ExitStatement)expr, scope);
@@ -232,7 +232,8 @@ namespace Transpiler
 
 		private void ProcessCall(VB.CallStatement statement, IdentifierScope scope)
 		{
-			if (statement.Matches("Response.Write"))
+			if (statement.Matches("Response.Write") || 
+			    (statement.Matches("Write") && scope is IdentifierScopeWithBlock with && with.Source.Equals("Response", StringComparison.OrdinalIgnoreCase)))
 			{
 				if (statement.MatchesArgument(0, test =>
 				    {
@@ -382,6 +383,16 @@ namespace Transpiler
 			_output.WriteCode($"While {whileBlock.Expression.Render(scope)}", true);
 			Process(whileBlock.Statements, scope, true);
 			_output.WriteCode("End While", true);
+		}
+
+		public void GenerateWithBlockExpr(VB.WithBlockStatement withBlock,
+			IdentifierScope scope)
+		{
+			var source = withBlock.Expression.Render(scope);
+			_output.WriteCode($"With {source}", true);
+			var innerScope = new IdentifierScopeWithBlock(source, scope);
+			Process(withBlock.Statements, innerScope, true);
+			_output.WriteCode("End With", true);
 		}
 
 		private void GenerateMethodExpr(VB.MethodDeclaration method, IdentifierScope scope)
@@ -1066,15 +1077,6 @@ namespace Transpiler
 	}
 
 	
-	public static Expression GenerateWithBlockExpr(VB.WithBlockStatement withBlock,
-											AnalysisScope scope)
-	{
-		var withScope = new AnalysisScope(scope, "with");
-		withScope.IsWith = true;
-		withScope.WithExpression = GenerateExpr(withBlock.Expression, scope);
-		return GenerateBlockExpr(withBlock.Statements, withScope);
-	}
-
 	public static Expression GenerateBreakExpr(VB.ExitStatement expr,
 									AnalysisScope scope)
 	{

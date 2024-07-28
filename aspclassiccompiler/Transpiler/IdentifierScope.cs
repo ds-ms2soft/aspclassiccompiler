@@ -38,7 +38,7 @@ namespace Transpiler
 			return rv;
 		}
 
-		public void Define(string name, string actual = null)
+		public virtual void Define(string name, string actual = null)
 		{
 			_identifiers[name] = actual ?? name;
 		}
@@ -94,6 +94,21 @@ namespace Transpiler
 					Define(kvp.Key, $"{variableName}.{kvp.Value}");
 				}
 			}
+		}
+	}
+
+	public class IdentifierScopeWithBlock: IdentifierScope
+	{
+		public string Source { get; }
+
+		public IdentifierScopeWithBlock(string source, IdentifierScope parentScope) : base(parentScope, null)
+		{
+			Source = source;
+		}
+
+		public override void Define(string name, string actual = null)
+		{
+			throw new NotSupportedException();
 		}
 	}
 }

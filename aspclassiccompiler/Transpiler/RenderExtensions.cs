@@ -56,6 +56,17 @@ namespace Transpiler
 			{
 				return "Nothing";
 			}
+			else if (exp is null)
+			{
+				if (scope is IdentifierScopeWithBlock)
+				{
+					return "";
+				}
+				else
+				{
+					throw new NotSupportedException("Null identifier found outside of With block.");
+				}
+			}
 			else
 			{
 				throw new NotImplementedException($"Can't render: {exp.GetType().Name}");
