@@ -1,13 +1,27 @@
-﻿namespace Transpiler
+﻿using NUnit.Framework;
+using System;
+
+namespace Transpiler
 {
-	internal class Program
+	[TestFixture] //just for convenience while developing
+	public class Program
 	{
 		static void Main(string[] args)
 		{
-			var service = new TranspilerService(@"C:\Work\aspclassiccompiler\aspclassiccompiler\AspWebApp\components\",
-				@"C:\Work\aspclassiccompiler\aspclassiccompiler\MvcTestApp\Views\Home\");
+			new Program().TranspileAll();
+		}
 
-			service.TranspileSingle("FileSystem.asp");
+		[Test]
+		public void TranspileAll()
+		{
+			var service = new Ms2Transpiler();
+
+			var errorCount = service.ParseAllFiles();
+			service.IdentifyIncludes();
+
+			var count = service.TranspileValidPages();
+			Console.WriteLine($"{count} valid pages transpiled.");
+			Console.WriteLine($"Files with errors: {errorCount}");
 		}
 	}
 }
