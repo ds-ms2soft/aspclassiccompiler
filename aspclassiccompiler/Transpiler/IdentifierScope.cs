@@ -12,6 +12,8 @@ namespace Transpiler
 		private readonly string _scopePrefix;
 		public IdentifierScope ParentScope { get; }
 
+		private readonly List<string> _undefinedIdentifiers = new List<string>();
+
 		private readonly Dictionary<string, string> _identifiers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
 		private static readonly Dictionary<string, string> GlobalIdentifiers = new Dictionary<string, string>
@@ -66,7 +68,7 @@ namespace Transpiler
 				{
 					if (defineIfMissing)
 					{
-						//TODO: hook here and define the names higher up?
+						_undefinedIdentifiers.Add(name);
 						Define(name);
 						rv = name;
 					}

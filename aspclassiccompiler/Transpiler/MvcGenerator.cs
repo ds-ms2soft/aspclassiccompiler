@@ -313,7 +313,8 @@ namespace Transpiler
 		//
 		private void GenerateAssignExpr(VB.AssignmentStatement expr, IdentifierScope scope)
 		{
-			var line = expr.TargetExpression.Render(scope) + " = " + expr.SourceExpression.Render(scope);
+			//TODO: allowing assign to undefined variables, could move this to a setting or something.
+			var line = expr.TargetExpression.Render(scope, true) + " = " + expr.SourceExpression.Render(scope);
 			_output.WriteCode(line, true);
 		}
 
