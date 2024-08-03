@@ -61,177 +61,161 @@ namespace Transpiler
 
 		private void Process(VB.Statement expr, IdentifierScope scope)
 		{
-			try
+			//if (expr is VB.ImportsDeclaration)
+			//{
+			//	return GenerateImportExpr((VB.ImportsDeclaration)expr, scope);
+			//}
+			//else if (expr is VB.NameImport)
+			//{
+			//	return GenerateImportExpr((VB.NameImport)expr, scope);
+			//}
+			//else if (expr is VB.AliasImport)
+			//{
+			//	return GenerateImportExpr((VB.AliasImport)expr, scope);
+			//}
+			if (expr is VB.CallStatement statement)
 			{
-				//if (expr is VB.ImportsDeclaration)
-				//{
-				//	return GenerateImportExpr((VB.ImportsDeclaration)expr, scope);
-				//}
-				//else if (expr is VB.NameImport)
-				//{
-				//	return GenerateImportExpr((VB.NameImport)expr, scope);
-				//}
-				//else if (expr is VB.AliasImport)
-				//{
-				//	return GenerateImportExpr((VB.AliasImport)expr, scope);
-				//}
-				if (expr is VB.CallStatement statement)
-				{
-					ProcessCall(statement, scope);
-				}
-
-				else if (expr is VB.LocalDeclarationStatement declaration)
-				{
-					ProcessDeclaration(declaration, scope);
-				}
-				else if (expr is VB.MethodDeclaration functionDeclaration)
-				{
-					GenerateMethodExpr(functionDeclaration, scope);
-				}
-				////else if (expr is SymplLambdaExpr)
-				////{
-				////    return GenerateLambdaExpr((SymplLambdaExpr)expr, scope);
-				////}
-				//else if (expr is VB.CallOrIndexExpression)
-				//{
-				//	return GenerateCallOrIndexExpr((VB.CallOrIndexExpression)expr, scope);
-				//}
-				//else if (expr is VB.SimpleNameExpression)
-				//{
-				//	return GenerateIdExpr((VB.SimpleNameExpression)expr, scope);
-				//}
-				////else if (expr is SymplQuoteExpr)
-				////{
-				////    return GenerateQuoteExpr((SymplQuoteExpr)expr, scope);
-				////}
-				//else if (expr is VB.NothingExpression)
-				//{
-				//	return Expression.Constant(null);
-				//}
-				//else if (expr is VB.LiteralExpression)
-				//{
-				//	return Expression.Constant(((VB.LiteralExpression)expr).Value);
-				//}
-				else if (expr is VB.AssignmentStatement assign)
-				{
-					GenerateAssignExpr(assign, scope);
-				}
-				////else if (expr is SymplEqExpr)
-				////{
-				////    return GenerateEqExpr((SymplEqExpr)expr, scope);
-				////}
-				else if (expr is VB.IfBlockStatement @if)
-				{
-					GenerateIfExpr(@if, scope);
-				}
-				//else if (expr is VB.LineIfStatement)
-				//{
-				//	return GenerateIfExpr((VB.LineIfStatement)expr, scope);
-				//}
-				//else if (expr is VB.QualifiedExpression)
-				//{
-				//	return GenerateDottedExpr((VB.QualifiedExpression)expr, scope);
-				//}
-				//else if (expr is VB.NewExpression)
-				//{
-				//	return GenerateNewExpr((VB.NewExpression)expr, scope);
-				//}
-				else if (expr is VB.ForBlockStatement @for)
-				{
-					GenerateForBlockExpr(@for, scope);
-				}
-				/*else if (expr is VB.ForEachBlockStatement forEach)
-				{
-					GenerateForEachBlockExpr(forEach, scope);
-				}*/
-				else if (expr is VB.WhileBlockStatement @while)
-				{
-					GenerateWhileBlockExpr(@while, scope);
-				}
-				else if (expr is VB.DoBlockStatement @do)
-				{
-					GenerateDoBlockExpr(@do, scope);
-				}
-				else if (expr is VB.WithBlockStatement with)
-				{
-					GenerateWithBlockExpr(with, scope);
-				}
-				else if (expr is VB.ExitStatement exit)
-				{
-					GenerateBreakExpr(exit, scope);
-				}
-				////else if (expr is SymplEltExpr)
-				////{
-				////    return GenerateEltExpr((SymplEltExpr)expr, scope);
-				////}
-				//else if (expr is VB.BinaryOperatorExpression)
-				//{
-				//	return GenerateBinaryExpr((VB.BinaryOperatorExpression)expr, scope);
-				//}
-				//else if (expr is VB.UnaryOperatorExpression)
-				//{
-				//	return GenerateUnaryExpr((VB.UnaryOperatorExpression)expr, scope);
-				//}
-				else if (expr is VB.SelectBlockStatement blockStatement)
-				{
-					GenerateSelectBlockExpr(blockStatement, scope);
-				}
-				//else if (expr is VB.BlockStatement)
-				//{
-				//	return GenerateBlockExpr(((VB.BlockStatement)expr).Statements, scope);
-				//}
-				else if (expr is VB.EmptyStatement)
-				{
-					Output.WriteCode(Environment.NewLine + Environment.NewLine, false);
-				}
-				else if (expr is VB.OptionDeclaration)
-				{
-					//scope.ModuleScope.IsOptionExplicitOn = true;
-					//return Expression.Empty();
-					//TODO: just ignore this?
-				}
-				//else if (expr is VB.ParentheticalExpression)
-				//{
-				//	return GenerateExpr(((VB.ParentheticalExpression)expr).Operand, scope);
-				//}
-				else if (expr is VB.ReDimStatement redimStatement)
-				{
-					GenerateRedimExpr(redimStatement, scope);
-				}
-				else if (expr is VB.OnErrorStatement errorStatement)
-				{
-					GenerateOnErrorStatement(errorStatement);
-				}
-				//else if (expr is ExpressionExpression)
-				//{
-				//	return ((ExpressionExpression)expr).Expression;
-				//}
-				else
-				{
-					throw new NotImplementedException($"{expr.GetType().FullName} is not yet implemented.");
-					//VBScriptSyntaxError error = new VBScriptSyntaxError(
-					//	scope.ModuleScope.Name,
-					//	SourceUtil.ConvertSpan(expr.Span),
-					//	(int)VB.SyntaxErrorType.NotImplemented,
-					//	string.Format("{0} is not yet implemented.", expr.GetType().FullName)
-					//);
-
-					//scope.ModuleScope.Errors.Add(error);
-					//return Expression.Default(typeof(object));
-				}
+				ProcessCall(statement, scope);
 			}
-			catch (Exception)
+
+			else if (expr is VB.LocalDeclarationStatement declaration)
 			{
+				ProcessDeclaration(declaration, scope);
+			}
+			else if (expr is VB.MethodDeclaration functionDeclaration)
+			{
+				GenerateMethodExpr(functionDeclaration, scope);
+			}
+			////else if (expr is SymplLambdaExpr)
+			////{
+			////    return GenerateLambdaExpr((SymplLambdaExpr)expr, scope);
+			////}
+			//else if (expr is VB.CallOrIndexExpression)
+			//{
+			//	return GenerateCallOrIndexExpr((VB.CallOrIndexExpression)expr, scope);
+			//}
+			//else if (expr is VB.SimpleNameExpression)
+			//{
+			//	return GenerateIdExpr((VB.SimpleNameExpression)expr, scope);
+			//}
+			////else if (expr is SymplQuoteExpr)
+			////{
+			////    return GenerateQuoteExpr((SymplQuoteExpr)expr, scope);
+			////}
+			//else if (expr is VB.NothingExpression)
+			//{
+			//	return Expression.Constant(null);
+			//}
+			//else if (expr is VB.LiteralExpression)
+			//{
+			//	return Expression.Constant(((VB.LiteralExpression)expr).Value);
+			//}
+			else if (expr is VB.AssignmentStatement assign)
+			{
+				GenerateAssignExpr(assign, scope);
+			}
+			////else if (expr is SymplEqExpr)
+			////{
+			////    return GenerateEqExpr((SymplEqExpr)expr, scope);
+			////}
+			else if (expr is VB.IfBlockStatement @if)
+			{
+				GenerateIfExpr(@if, scope);
+			}
+			//else if (expr is VB.LineIfStatement)
+			//{
+			//	return GenerateIfExpr((VB.LineIfStatement)expr, scope);
+			//}
+			//else if (expr is VB.QualifiedExpression)
+			//{
+			//	return GenerateDottedExpr((VB.QualifiedExpression)expr, scope);
+			//}
+			//else if (expr is VB.NewExpression)
+			//{
+			//	return GenerateNewExpr((VB.NewExpression)expr, scope);
+			//}
+			else if (expr is VB.ForBlockStatement @for)
+			{
+				GenerateForBlockExpr(@for, scope);
+			}
+			else if (expr is VB.ForEachBlockStatement forEach)
+			{
+				GenerateForEachBlockExpr(forEach, scope);
+			}
+			else if (expr is VB.WhileBlockStatement @while)
+			{
+				GenerateWhileBlockExpr(@while, scope);
+			}
+			else if (expr is VB.DoBlockStatement @do)
+			{
+				GenerateDoBlockExpr(@do, scope);
+			}
+			else if (expr is VB.WithBlockStatement with)
+			{
+				GenerateWithBlockExpr(with, scope);
+			}
+			else if (expr is VB.ExitStatement exit)
+			{
+				GenerateBreakExpr(exit, scope);
+			}
+			////else if (expr is SymplEltExpr)
+			////{
+			////    return GenerateEltExpr((SymplEltExpr)expr, scope);
+			////}
+			//else if (expr is VB.BinaryOperatorExpression)
+			//{
+			//	return GenerateBinaryExpr((VB.BinaryOperatorExpression)expr, scope);
+			//}
+			//else if (expr is VB.UnaryOperatorExpression)
+			//{
+			//	return GenerateUnaryExpr((VB.UnaryOperatorExpression)expr, scope);
+			//}
+			else if (expr is VB.SelectBlockStatement blockStatement)
+			{
+				GenerateSelectBlockExpr(blockStatement, scope);
+			}
+			//else if (expr is VB.BlockStatement)
+			//{
+			//	return GenerateBlockExpr(((VB.BlockStatement)expr).Statements, scope);
+			//}
+			else if (expr is VB.EmptyStatement)
+			{
+				Output.WriteCode(Environment.NewLine + Environment.NewLine, false);
+			}
+			else if (expr is VB.OptionDeclaration)
+			{
+				//scope.ModuleScope.IsOptionExplicitOn = true;
+				//return Expression.Empty();
+				//TODO: just ignore this?
+			}
+			//else if (expr is VB.ParentheticalExpression)
+			//{
+			//	return GenerateExpr(((VB.ParentheticalExpression)expr).Operand, scope);
+			//}
+			else if (expr is VB.ReDimStatement redimStatement)
+			{
+				GenerateRedimExpr(redimStatement, scope);
+			}
+			else if (expr is VB.OnErrorStatement errorStatement)
+			{
+				GenerateOnErrorStatement(errorStatement);
+			}
+			//else if (expr is ExpressionExpression)
+			//{
+			//	return ((ExpressionExpression)expr).Expression;
+			//}
+			else
+			{
+				throw new NotImplementedException($"{expr.GetType().FullName} is not yet implemented.");
 				//VBScriptSyntaxError error = new VBScriptSyntaxError(
 				//	scope.ModuleScope.Name,
 				//	SourceUtil.ConvertSpan(expr.Span),
-				//	(int)VB.SyntaxErrorType.Unexpected,
-				//	string.Format("Unexpected error in {0}: {1}", expr.GetType().FullName, ex.Message)
+				//	(int)VB.SyntaxErrorType.NotImplemented,
+				//	string.Format("{0} is not yet implemented.", expr.GetType().FullName)
 				//);
 
 				//scope.ModuleScope.Errors.Add(error);
 				//return Expression.Default(typeof(object));
-				throw;
 			}
 		}
 
