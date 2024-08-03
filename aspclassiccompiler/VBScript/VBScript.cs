@@ -126,7 +126,7 @@ namespace Dlrsoft.VBScript
                 {
                     errors.Add(new VBScriptSyntaxError(
                         filename,
-                        SourceUtil.ConvertSpan(error.Span),
+                        SourceUtil.ConvertSpan(error.GeneratedSpan),
                         (int)error.Type,
                         error.Type.ToString())
                     );

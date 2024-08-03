@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Microsoft.Scripting;
 using System.Text;
+using Dlrsoft.VBScript.Parser;
 
 namespace Dlrsoft.VBScript.Compiler
 {
@@ -21,6 +22,12 @@ namespace Dlrsoft.VBScript.Compiler
             _mappings[generatedSpan] = span;
         }
 
+        public DocSpan Map(Span span)
+        {
+            var start = new SourceLocation(span.Start.Index, span.Start.Line, span.Start.Column);
+            var end = new SourceLocation(span.Finish.Index, span.Finish.Line, span.Finish.Column);
+            return Map(new SourceSpan(start, end));
+        }
         #region ISourceMapper Members
 
         public DocSpan Map(SourceSpan span)

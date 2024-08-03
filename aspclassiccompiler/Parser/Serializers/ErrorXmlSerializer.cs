@@ -34,7 +34,7 @@ namespace Dlrsoft.VBScript.Parser
 		public void Serialize(SyntaxError SyntaxError)
 		{
 			Writer.WriteStartElement(SyntaxError.Type.ToString());
-			Serialize(SyntaxError.Span);
+			Serialize(SyntaxError.GeneratedSpan);
 			Writer.WriteString(SyntaxError.ToString());
 			Writer.WriteEndElement();
 		}

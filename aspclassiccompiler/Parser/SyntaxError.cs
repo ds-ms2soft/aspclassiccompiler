@@ -19,7 +19,7 @@ namespace Dlrsoft.VBScript.Parser
 	public sealed class SyntaxError
 	{
 		private readonly SyntaxErrorType _Type;
-		private readonly Span _Span;
+		private readonly Span _generatedSpan;
 
 		/// <summary>
 	/// The type of the syntax error.
@@ -33,27 +33,31 @@ namespace Dlrsoft.VBScript.Parser
 		}
 
 		/// <summary>
-		/// The location of the syntax error.
-		/// DS: Note that this doesn't seem to correspond exactly with the source. It seemed to ignore things that were skipped like "&lt;%", which makes it a little less useful.
+		/// The location of the syntax error in the generated source code.
 		/// </summary>
-		public Span Span
+		public Span GeneratedSpan
 		{
 			get
 			{
-				return _Span;
+				return _generatedSpan;
 			}
 		}
 
 		/// <summary>
+		/// This is the Span property mapped back to the original source.
+		/// </summary>
+		public Span? SourceSpan { get; set; }
+
+	/// <summary>
 	/// Constructs a new syntax error.
 	/// </summary>
 	/// <param name="type">The type of the syntax error.</param>
-	/// <param name="span">The location of the syntax error.</param>
-		public SyntaxError(SyntaxErrorType @type, Span span)
+	/// <param name="generatedSpan">The location of the syntax error.</param>
+		public SyntaxError(SyntaxErrorType @type, Span generatedSpan)
 		{
 			Debug.Assert(Enum.IsDefined(typeof(SyntaxErrorType), type));
 			_Type = type;
-			_Span = span;
+			_generatedSpan = generatedSpan;
 		}
 
 		private string[] _ToString_Messages = default;
@@ -70,7 +74,7 @@ namespace Dlrsoft.VBScript.Parser
 				_ToString_Messages = Strings;
 			}
 
-			return "error " + ((int)Type).ToString() + " " + Span.ToString() + ": " + _ToString_Messages[(int)Type];
+			return "error " + ((int)Type).ToString() + " " + (SourceSpan??GeneratedSpan).ToString() + ": " + _ToString_Messages[(int)Type];
 		}
 	}
 }
