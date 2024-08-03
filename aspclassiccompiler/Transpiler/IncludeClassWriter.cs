@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Dlrsoft.VBScript.Parser;
 
 namespace Transpiler
 {
-	internal class IncludeClassWriter: OutputWriter, IDisposable
+	public class IncludeClassWriter: OutputWriter, IDisposable
 	{
 		private readonly StreamWriter _underlying;
+		private string _constructor = "Public Sub New(hostPage As System.Web.Mvc.WebViewPage";
 
 		public IncludeClassWriter(StreamWriter underlying)
 		{
@@ -16,8 +19,19 @@ namespace Transpiler
 		public string ClassName { get; set; }
 		public string BaseClass { get; set; }
 
+		public void AddConstructorParam(string name, string type)
+		{
+			_constructorBody.Add($"Me.{name} = {name}");
+			_fields.Add($"Private {name} As {type}");
+			_constructor += $", {name} As {type}";
+		}
+
 		public void Render()
 		{
+			WriteLineWithIndent("Option Explicit Off");
+			WriteLineWithIndent("Option Infer On");
+			WriteLineWithIndent("Option Strict Off\r\n");
+
 			WriteLineWithIndent($"Namespace {Namespace}");
 			using (var _ = BeginBlock())
 			{
@@ -27,11 +41,11 @@ namespace Transpiler
 					WriteLineWithIndent($"Inherits {BaseClass}");
 					WriteLineWithIndent("");
 
-					//constructor
-					WriteLineWithIndent("public Sub New(page As System.Web.Mvc.WebViewPage)");
+					_constructor += ")";
+					WriteLineWithIndent(_constructor);
 					using (var _3 = BeginBlock())
 					{
-						WriteLineWithIndent("MyBase.New(page)");
+						WriteLineWithIndent("MyBase.New(hostPage)");
 						WriteLinesWithIndent(_constructorBody);
 					}
 					WriteLineWithIndent("End Sub" + Environment.NewLine);
@@ -95,12 +109,13 @@ namespace Transpiler
 			{
 				_SubsAndFunctions.Add(GetIndentation() + text);
 			}
-			else if (text.StartsWith("Const", StringComparison.OrdinalIgnoreCase) ||
+			/*I don't think I want to elevate everything to a public field, but how do I handle actual variables that are being exposed from headers to their parents?
+			 else if (text.StartsWith("Const", StringComparison.OrdinalIgnoreCase) ||
 			         text.StartsWith("Dim", StringComparison.OrdinalIgnoreCase) ||
 			         text.StartsWith("ReDim", StringComparison.OrdinalIgnoreCase))
 			{
 				_fields.Add("Public " + text);
-			}
+			}*/
 			else if (String.IsNullOrWhiteSpace(text))
 			{
 				//Ignore this, probably don't care
@@ -114,6 +129,16 @@ namespace Transpiler
 		public void Dispose()
 		{
 			Render();
+		}
+
+		public void AddIncludeVariable(string variableName, string className, IEnumerable<IncludeFileConstructorParameter> extraParams)
+		{
+			if (extraParams?.Any() == true)
+			{
+				throw new NotImplementedException();
+			}
+			_fields.Add($"Public ReadOnly {variableName} As {className}");
+			_constructorBody.Add($"Me.{variableName} = New {className}(hostPage)");
 		}
 	}
 }

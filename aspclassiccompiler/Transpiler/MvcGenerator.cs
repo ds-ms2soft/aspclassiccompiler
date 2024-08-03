@@ -17,16 +17,18 @@ namespace Transpiler
 
 		public Action<IdentifierScope> AddToGlobalScope { get; set; }
 
-		public IdentifierScope Transpile(VB.ScriptBlock script, OutputWriter output, IReadOnlyList<string> literals)
+		public IdentifierScope Transpile(VB.ScriptBlock script, OutputWriter output, IReadOnlyList<string> literals, Action<IdentifierScope> defineExtraIdentifiers = null)
 		{
 			_script = script;
 			_output = output;
 			_literals = literals;
 			var globalScope = IdentifierScope.MakeGlobal();
 			AddToGlobalScope?.Invoke(globalScope);
-			AddSubAndMethodDeclarationsToScope(_script.Statements, globalScope);
-			Process(_script.Statements, globalScope, false);
-			return globalScope;
+			var localScope = new IdentifierScope(globalScope);
+			defineExtraIdentifiers?.Invoke(localScope);
+			AddSubAndMethodDeclarationsToScope(_script.Statements, localScope);
+			Process(_script.Statements, localScope, false);
+			return localScope;
 		}
 
 		private void AddSubAndMethodDeclarationsToScope(VB.StatementCollection statements, IdentifierScope scope)
@@ -152,10 +154,10 @@ namespace Transpiler
 				{
 					GenerateWithBlockExpr(with, scope);
 				}
-				//else if (expr is VB.ExitStatement)
-				//{
-				//	return GenerateBreakExpr((VB.ExitStatement)expr, scope);
-				//}
+				else if (expr is VB.ExitStatement exit)
+				{
+					GenerateBreakExpr(exit, scope);
+				}
 				////else if (expr is SymplEltExpr)
 				////{
 				////    return GenerateEltExpr((SymplEltExpr)expr, scope);
@@ -286,7 +288,7 @@ namespace Transpiler
 			foreach (VB.VariableName v in declare.VariableNames)
 			{
 				var originalName = v.Name.Name;
-				var name = OverrideVariableDeclaration(originalName);
+				var name = OverrideVariableDeclaration(originalName, scope);
 				if (name != null)
 				{
 					if (!isFirstVariable)
@@ -324,8 +326,8 @@ namespace Transpiler
 			}
 		}
 
-		public Func<string, string> OverrideVariableDeclaration { get; set; } = (x) => x;
-		public Func<string, string, bool> OverrideVariableAssign { get; set; } = (variable, value) => false;
+		public Func<string, IdentifierScope, string> OverrideVariableDeclaration { get; set; } = (x, scope) => x;
+		public Func<string, string, IdentifierScope, bool> OverrideVariableAssign { get; set; } = (variable, value, scope) => false;
 
 		// GenerateAssignExpr handles IDs, indexing, and member sets.  IDs are either
 		// lexical or dynamic exprs on the module scope.  Everything
@@ -333,14 +335,19 @@ namespace Transpiler
 		//
 		private void GenerateAssignExpr(VB.AssignmentStatement expr, IdentifierScope scope)
 		{
-			//TODO: allowing assign to undefined variables, could move this to a setting or something.
-			var variable = expr.TargetExpression.Render(scope, true);
+			using var newVariables = scope.WithVariableDefinitionHandling();
+			
+			var variable =
+				expr.TargetExpression.Render(scope,
+					IdentifierScope.UndefinedHandling.AllowAndDefine); //Define because we are an assignment
 			var value = expr.SourceExpression.Render(scope);
 
-			if (!OverrideVariableAssign(variable, value))
+
+			if (!OverrideVariableAssign(variable, value, scope))
 			{
-				_output.WriteCode(variable + " = " + value, true);
+				_output.WriteCode((newVariables.WasDefined(variable) ? "Dim " : "") +variable + " = " + value, true);
 			}
+
 		}
 
 		private void GenerateForBlockExpr(VB.ForBlockStatement forBlock,
@@ -351,9 +358,10 @@ namespace Transpiler
 				throw new NotImplementedException();
 			}
 			
-			_output.WriteCode($"For {forBlock.ControlExpression.Render(scope, true)} = {forBlock.LowerBoundExpression.Render(scope)} To {forBlock.UpperBoundExpression.Render(scope)}", true);
+			var innerScope = new IdentifierScope(scope);
+			_output.WriteCode($"For {forBlock.ControlExpression.Render(innerScope, IdentifierScope.UndefinedHandling.AllowAndDefine)} = {forBlock.LowerBoundExpression.Render(innerScope)} To {forBlock.UpperBoundExpression.Render(innerScope)}", true);
 
-			Process(forBlock.Statements, scope, true);
+			Process(forBlock.Statements, innerScope, true);
 
 			_output.WriteCode("Next", true);
 		}
@@ -535,6 +543,26 @@ namespace Transpiler
 				}
 			}
 			_output.WriteCode("End Select", true);
+		}
+
+		private void GenerateBreakExpr(VB.ExitStatement expr,
+			IdentifierScope scope)
+		{
+			switch (expr.ExitType)
+			{
+				case Dlrsoft.VBScript.Parser.BlockType.Function:
+					_output.WriteCode("Exit Function", true);
+					break;
+				case Dlrsoft.VBScript.Parser.BlockType.Sub:
+					_output.WriteCode("Exit Sub", true);
+					break;
+				case Dlrsoft.VBScript.Parser.BlockType.Do:
+				case Dlrsoft.VBScript.Parser.BlockType.For:
+				//	_output.WriteCode("Break", true);
+//					break;
+				default:
+					throw new NotImplementedException();
+			}
 		}
 
 		/*public void GenerateForEachBlockExpr(VB.ForEachBlockStatement forBlock,
@@ -1101,29 +1129,7 @@ namespace Transpiler
 	}
 
 	
-	public static Expression GenerateBreakExpr(VB.ExitStatement expr,
-									AnalysisScope scope)
-	{
-		var exitScope = _findFirstScope(scope, expr.ExitType);
-		if (exitScope == null)
-			throw new InvalidOperationException("Cannot find exit target.");
-		LabelTarget target = null;
-		switch (expr.ExitType)
-		{
-			case Dlrsoft.VBScript.Parser.BlockType.Function:
-				string name = exitScope.Name;
-				return Expression.Break(exitScope.MethodExit, FindIdDef(name, scope));
-
-			case Dlrsoft.VBScript.Parser.BlockType.Sub:
-				target = exitScope.MethodExit;
-				break;
-			case Dlrsoft.VBScript.Parser.BlockType.Do:
-			case Dlrsoft.VBScript.Parser.BlockType.For:
-				target = exitScope.LoopBreak;
-				break;
-		}
-		return Expression.Break(target);
-	}
+	
 
 	public static Expression GenerateNewExpr(VB.NewExpression expr,
 											AnalysisScope scope)

@@ -64,7 +64,7 @@ namespace Transpiler
 			_includeBaseClassName = baseClassName;
 		}
 
-		public TranspileUnit EnsureIncludeTranspiled(string fullPath)
+		public TranspileUnit EnsureIncludeTranspiled(string fullPath, IEnumerable<IncludeFileConstructorParameter> extraParams)
 		{
 			try
 			{
@@ -91,7 +91,28 @@ namespace Transpiler
 						classWriter.BaseClass = _includeBaseClassName;
 						classWriter.ClassName =
 							Path.GetFileNameWithoutExtension(new FileInfo(fullPath).Name); //Filename controls the case
-						var scope = transpiler.Transpile(unit.Block, classWriter, unit.Page.Literals);
+						extraParams = extraParams ?? Enumerable.Empty<IncludeFileConstructorParameter>();
+						transpiler.HandleServerSideInclude = (path, output2, scope2) =>
+						{
+							HandleServerSideInclude(path, output2, scope2, classWriter);
+						};
+						foreach (var param in extraParams)
+						{
+							classWriter.AddConstructorParam(param.Name, param.Type);
+						}
+						
+						var scope = transpiler.Transpile(unit.Block, classWriter, unit.Page.Literals, includeScope =>
+						{
+							foreach (var name in new[] {"Server", "Request", "Response", "Session", "Application" })
+							{
+								//Forwards to the page object.
+								includeScope.Define(name, "HostPage." + name);
+							}
+							foreach (var param in extraParams)
+							{
+								includeScope.Define(param.Name, $"Me.{param.Name}");
+							}
+						});
 						unit.IncludeClassName = String.Join(".", classWriter.Namespace, classWriter.ClassName);
 						unit.IncludeScope = scope;
 					}
@@ -175,7 +196,7 @@ namespace Transpiler
 			{
 				var transpiler = new MvcGenerator()
 				{
-					HandleServerSideInclude = HandleServerSideInclude
+					HandleServerSideInclude = (s, writer, arg3) => HandleServerSideInclude(s, writer, arg3, null)
 				};
 
 				using (var outFile = File.Open(output, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
@@ -190,23 +211,46 @@ namespace Transpiler
 			}
 		}
 
-		protected virtual void HandleServerSideInclude(string fullPath, OutputWriter output, IdentifierScope scope)
+		protected virtual void HandleServerSideInclude(string fullPath, OutputWriter output, IdentifierScope scope, IncludeClassWriter fromInclude)
 		{
-			HandleServerSideInclude(fullPath, output, scope, null);
+			HandleServerSideInclude(fullPath, output, scope, fromInclude, null);
 		}
 
-		protected void HandleServerSideInclude(string fullPath, OutputWriter output, IdentifierScope scope, string initializer)
+		protected void HandleServerSideInclude(string fullPath, OutputWriter output, IdentifierScope scope, IncludeClassWriter fromInclude, IEnumerable<IncludeFileConstructorParameter> extraParams)
 		{
-			var include = EnsureIncludeTranspiled(fullPath);
+			var include = EnsureIncludeTranspiled(fullPath, extraParams);
 
 			var variableName = "_" + include.IncludeClassName.Split('.').Last();
-			output.WriteCode($"Dim {variableName} = New {include.IncludeClassName}{initializer ?? "(Me)"}", true);
+			var initializer = fromInclude != null ? "(HostPage" :"(Me";
+			foreach(var param in extraParams ?? Enumerable.Empty<IncludeFileConstructorParameter>())
+			{
+				initializer += $", {(scope.TryGetIdentifier(param.Name, out var definedParam) ? definedParam : param.StaticValue)}";
+			}
+			initializer += ")";
+
+			if (fromInclude == null)
+			{
+				output.WriteCode($"Dim {variableName} = New {include.IncludeClassName}{initializer}", true);
+			}
+			else
+			{
+				fromInclude.AddIncludeVariable(variableName, include.IncludeClassName, extraParams);
+			}
 			scope.MapToVariable(include.IncludeScope, variableName);
 		}
 
 		protected virtual MvcGenerator MakeGeneratorForFile() => new MvcGenerator()
 		{
-			HandleServerSideInclude = HandleServerSideInclude
+			HandleServerSideInclude = (s, writer, arg3) => HandleServerSideInclude(s, writer, arg3, null, null)
 		};
+	}
+
+
+	public class IncludeFileConstructorParameter
+	{
+		public string Name { get; set; }
+		public string Type { get; set; }
+		public string StaticValue { get; set; }
+		public string DefaultIfMissing { get; set; }
 	}
 }

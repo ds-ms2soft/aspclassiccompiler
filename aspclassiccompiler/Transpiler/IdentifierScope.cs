@@ -9,8 +9,15 @@ namespace Transpiler
 	/// </summary>
 	public class IdentifierScope
 	{
-		private readonly string _scopePrefix;
+		public enum UndefinedHandling
+		{
+			Throw = 0,
+			Ignore = 1,
+			AllowAndDefine = 2
+		}
+
 		public IdentifierScope ParentScope { get; }
+		public bool IsGlobal => ParentScope == null;
 
 		private readonly List<string> _undefinedIdentifiers = new List<string>();
 
@@ -19,12 +26,13 @@ namespace Transpiler
 		private static readonly Dictionary<string, string> GlobalIdentifiers = new Dictionary<string, string>
 		{
 			{ "Server", "Server" }, { "Request", "Request" }, { "Response", "Response" }, {"Session", "Session"},
-			{ "Application", "Application" }, { "Err", "Err" }, { "nErr", "nErr" }, { "Now", "DateTime.Now" }
+			{ "Application", "Application" }, { "Err", "Err" }, { "nErr", "nErr" }, 
+			{ "Now", "DateTime.Now" },
+			{"Timer", "DateAndTime.Timer"}
 		};
 
-		public IdentifierScope(IdentifierScope parentScope, string scopePrefix = null)
+		public IdentifierScope(IdentifierScope parentScope)
 		{
-			_scopePrefix = scopePrefix != null ? scopePrefix + "." : null;
 			ParentScope = parentScope;
 		}
 
@@ -46,19 +54,14 @@ namespace Transpiler
 			_identifiers[name] = actual;
 		}
 
-		public string GetIdentifier(string name, bool allowUndefined)
+		public string GetIdentifier(string name, UndefinedHandling undefined = UndefinedHandling.Throw)
 			// ReSharper disable once ConditionalTernaryEqualBranch
-			=> GetIdentifier(name, allowUndefined, true, out var found) ? found : found;
+			=> GetIdentifier(name, undefined, out var found) ? found : found;
 
-		private bool GetIdentifier(string name, bool defineIfMissing, bool throwIfNotFound, out string found)
+		private bool GetIdentifier(string name, UndefinedHandling undefined, out string found)
 		{
 			if (_identifiers.TryGetValue(name, out found))
 			{
-				return true;
-			}
-			else if (VBScriptGenerator.IsBuiltInConstants(name) || VBScriptGenerator.IsBuiltInFunction(name))
-			{
-				found = name;
 				return true;
 			}
 			else
@@ -66,21 +69,37 @@ namespace Transpiler
 				var rv = false;
 				if (ParentScope != null)
 				{
-					rv = ParentScope.GetIdentifier(name, false, false, out found);
+					rv = ParentScope.GetIdentifier(name, UndefinedHandling.Ignore, out found);
 				}
 
 				if (!rv)
 				{
-					if (defineIfMissing)
+					if (VBScriptGenerator.IsBuiltInConstants(name) || VBScriptGenerator.IsBuiltInFunction(name))
+					{
+						found = name;
+						rv = true;
+					}
+				}
+
+				if (!rv)
+				{
+					if (undefined == UndefinedHandling.Throw)
+					{
+						throw new NotSupportedException($"Identifier not found: {name}");
+					}
+					else if (undefined == UndefinedHandling.AllowAndDefine)
 					{
 						_undefinedIdentifiers.Add(name);
+						_onUndefinedVariable?.Define(name);
 						Define(name);
 						found = name;
 						rv = true;
 					}
-					else if (throwIfNotFound)
+					else
 					{
-						throw new NotSupportedException($"Identifier not found: {name}");
+						_undefinedIdentifiers.Add(name);
+						found = name;
+						rv = false;
 					}
 				}
 
@@ -101,18 +120,54 @@ namespace Transpiler
 				}
 			}
 		}
+
+		public bool TryGetIdentifier(string paramName, out string scopedName)
+			=> GetIdentifier(paramName, UndefinedHandling.Ignore, out scopedName);
+
+		public VariableDefinitionHandling WithVariableDefinitionHandling()
+		{
+			var old = _onUndefinedVariable;
+			return _onUndefinedVariable = new VariableDefinitionHandling(() => _onUndefinedVariable = old);
+		}
+
+		private VariableDefinitionHandling _onUndefinedVariable = null;
+
+		public class VariableDefinitionHandling : IDisposable
+		{
+			private readonly Action _onDispose;
+			public VariableDefinitionHandling(Action onDispose)
+			{
+				_onDispose = onDispose;
+			}
+			private readonly HashSet<string> _definedVariables = new HashSet<string>();
+
+			public bool WasDefined(string name)
+			{
+				return _definedVariables.Contains(name);
+			}
+
+			public void Define(string name)
+			{
+				_definedVariables.Add(name);
+			}
+
+			public void Dispose()
+			{
+				_onDispose();
+			}
+		}
 	}
 
 	public class IdentifierScopeWithBlock: IdentifierScope
 	{
 		public string Source { get; }
 
-		public IdentifierScopeWithBlock(string source, IdentifierScope parentScope) : base(parentScope, null)
+		public IdentifierScopeWithBlock(string source, IdentifierScope parentScope) : base(parentScope)
 		{
 			Source = source;
 		}
 
-		public override void Define(string name, string actual = null)
+		public override void Define(string name, string actual)
 		{
 			throw new NotSupportedException();
 		}

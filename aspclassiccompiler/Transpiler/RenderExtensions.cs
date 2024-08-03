@@ -6,10 +6,10 @@ namespace Transpiler
 {
 	public static class RenderExtensions
 	{
-		public static string Render(this SimpleName sn, IdentifierScope scope, bool allowUndefined)
-			=> scope.GetIdentifier(sn.Name, allowUndefined);
+		public static string Render(this SimpleName sn, IdentifierScope scope, IdentifierScope.UndefinedHandling undefined)
+			=> scope.GetIdentifier(sn.Name, undefined);
 
-		public static string Render(this Expression exp, IdentifierScope scope, bool allowUndefinedVariables = false)
+		public static string Render(this Expression exp, IdentifierScope scope, IdentifierScope.UndefinedHandling undefined = IdentifierScope.UndefinedHandling.Throw)
 		{
 			if (exp is StringLiteralExpression sl)
 			{
@@ -25,7 +25,7 @@ namespace Transpiler
 			}
 			else if (exp is SimpleNameExpression sne)
 			{
-				return sne.Name.Render(scope, allowUndefinedVariables);
+				return sne.Name.Render(scope, undefined);
 			}
 			else if (exp is CallOrIndexExpression cie)
 			{
@@ -34,7 +34,13 @@ namespace Transpiler
 			else if (exp is QualifiedExpression qe)
 			{
 				//This handles cases where we want to support a qualifier being removed (i.e. defined as null)
-				return String.Join(".", new[]{qe.Qualifier.Render(scope), qe.Name.Name}.Where(name => !String.IsNullOrEmpty(name)));
+				//But we also need to handle empty qualifiers for "With" blocks
+				var qualifier = qe.Qualifier?.Render(scope) ?? "";
+				if (!String.IsNullOrEmpty(qualifier) || scope is IdentifierScopeWithBlock)
+				{
+					qualifier += ".";
+				}
+				return qualifier + qe.Name.Render(scope, IdentifierScope.UndefinedHandling.Ignore); //ignore identifiers here, they are members of some unknown type, so can't validate them here
 			}
 			else if (exp is BinaryOperatorExpression binary)
 			{
