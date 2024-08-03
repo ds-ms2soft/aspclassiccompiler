@@ -36,9 +36,16 @@ namespace Transpiler
 			var all = Directory.GetFiles(_sourceFolderBase, "*.asp", SearchOption.AllDirectories)
 				.Where(x => Path.GetExtension(x) == ".asp"); //filter out .aspx
 			
-			
-			_unitsByPath = all.ToDictionary(path => path, TranspileUnit.Parse,StringComparer.OrdinalIgnoreCase);
+			_unitsByPath = all.ToDictionary(path => path, TranspileUnit.Parse, StringComparer.OrdinalIgnoreCase);
 			return _unitsByPath.Count(unit => unit.Value.HasErrors);
+		}
+
+		public void VisitInvalid(Action<string, TranspileUnit> action)
+		{
+			foreach (var keyValuePair in _unitsByPath.Where(unit => unit.Value.HasErrors))
+			{
+				action(keyValuePair.Key, keyValuePair.Value);
+			}
 		}
 
 		public void IdentifyIncludes()
