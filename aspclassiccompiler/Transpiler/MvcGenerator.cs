@@ -226,10 +226,6 @@ namespace Transpiler
 
 		private void ProcessCall(VB.CallStatement statement, IdentifierScope scope)
 		{
-			if (statement.Matches("HostPage.Request.QueryString"))
-			{
-				throw new NotImplementedException("Response.QueryString is not yet implemented.");
-			}
 			if (statement.Matches("Response.Write") || 
 			    (statement.Matches("Write") && scope is IdentifierScopeWithBlock with && with.Source.Equals("Response", StringComparison.OrdinalIgnoreCase)))
 			{
@@ -553,75 +549,16 @@ namespace Transpiler
 			}
 		}
 
-		/*public void GenerateForEachBlockExpr(VB.ForEachBlockStatement forBlock,
+		public void GenerateForEachBlockExpr(VB.ForEachBlockStatement forBlock,
 			IdentifierScope scope)
 		{
-			_output.WriteCode(forBlock.ControlExpression.Render(scope), true);
+			var innerScope = new IdentifierScope(scope);
+			Output.WriteCode($"For Each {forBlock.ControlExpression.Render(innerScope, IdentifierScope.UndefinedHandling.AllowAndDefine)} In {forBlock.CollectionExpression.Render(innerScope)}", true);
 
-			_output.WriteCode("Next", true);
-			/ *var loopscope = new AnalysisScope(scope, "loop ");
-			loopscope.IsForLoop = true; // needed for break and continue
-			loopscope.LoopBreak = Expression.Label("loop break");
-			Expression body = GenerateBlockExpr(forBlock.Statements, loopscope);
-			Expression variable;
-			if (forBlock.ControlExpression is VB.SimpleNameExpression)
-			{
-				variable = FindIdDef(((VB.SimpleNameExpression)forBlock.ControlExpression).Name.Name, scope, true);
-			}
-			else
-			{
-				variable = GenerateExpr(forBlock.ControlExpression, loopscope);
-			}
-			Expression enumerable = GenerateExpr(forBlock.CollectionExpression, scope);
-			ParameterExpression temp = Expression.Variable(typeof(IEnumerator), "$enumerator");
+			Process(forBlock.Statements, innerScope, true);
 
-			return Expression.Block(
-				new ParameterExpression[] { temp },
-				Expression.Assign(temp,
-					Expression.Call(
-						Expression.Convert(
-							enumerable,
-							typeof(IEnumerable)
-						),
-						typeof(IEnumerable).GetMethod("GetEnumerator")
-					)
-				),
-				Expression.Loop(
-					Expression.Block(
-						Expression.Condition(
-							Expression.Call(
-								temp,
-								typeof(IEnumerator).GetMethod("MoveNext")
-							),
-							Expression.Empty(),
-							Expression.Break(loopscope.LoopBreak),
-							typeof(void)
-						),
-						GenerateExpr(
-							new VB.AssignmentStatement(
-								forBlock.ControlExpression,
-								forBlock.InLocation,
-								new ExpressionExpression(
-									Expression.Convert(
-										Expression.Property(
-											temp,
-											typeof(IEnumerator).GetProperty("Current")
-										),
-										variable.Type
-									),
-									forBlock.ControlExpression.Span
-								),
-								forBlock.ControlExpression.Span,
-								null,
-								true
-							),
-							loopscope
-						),
-						body
-					),
-					loopscope.LoopBreak)
-			);* /
-		}*/
+			Output.WriteCode("Next", true);
+		}
 	}
 	/*
 	public static Expression GenerateImportExpr(VB.ImportsDeclaration importDesc, AnalysisScope scope)
