@@ -9,11 +9,13 @@ namespace Transpiler
 	public class IncludeClassWriter: OutputWriter, IDisposable
 	{
 		private readonly StreamWriter _underlying;
-		private string _constructor = "Public Sub New(hostPage As System.Web.Mvc.WebViewPage";
+		private string _constructor;
 
-		public IncludeClassWriter(StreamWriter underlying)
+		public IncludeClassWriter(StreamWriter underlying, string pageBaseType)
 		{
 			_underlying = underlying;
+			_constructor = "Public Sub New(hostPage As " + pageBaseType;
+
 		}
 		public string Namespace { get; set; }
 		public string ClassName { get; set; }

@@ -18,6 +18,7 @@ namespace Transpiler
 		private string _includeBaseClassName;
 		private string _includeFileOutputFolder;
 		private string _includeNamespaceRoot;
+		private string _includePageBaseType;
 
 		public IEnumerable<string> IncludePages => _includePagesByPath ?? (IEnumerable<string>)Array.Empty<string>();
 
@@ -57,11 +58,12 @@ namespace Transpiler
 			}
 		}
 
-		public void ConfigureIncludeProcessing(string relativeOutputFolder, string namespaceRoot, string baseClassName)
+		public void ConfigureIncludeProcessing(string relativeOutputFolder, string namespaceRoot, string baseClassName, string pageBaseType)
 		{
 			_includeFileOutputFolder = Path.GetFullPath(Path.Combine(_outputFolderBase, relativeOutputFolder));
 			_includeNamespaceRoot = namespaceRoot;
 			_includeBaseClassName = baseClassName;
+			_includePageBaseType = pageBaseType;
 		}
 
 		public TranspileUnit EnsureIncludeTranspiled(string fullPath, IEnumerable<IncludeFileConstructorParameter> extraParams)
@@ -80,11 +82,11 @@ namespace Transpiler
 					//Note: we need to transpile the file, even if we already have file output, (from a prior run),
 					//because we need to know the scope of the variables and functions defined in the include.
 					var transpiler = MakeGeneratorForFile();
-
+					transpiler.IsIncludeFile = true;
 					using (var outFile = File.Open(output, FileMode.Create, FileAccess.ReadWrite,
 						       FileShare.ReadWrite))
 					using (var writer = new StreamWriter(outFile))
-					using (var classWriter = new IncludeClassWriter(writer))
+					using (var classWriter = new IncludeClassWriter(writer, _includePageBaseType))
 					{
 						classWriter.Namespace = _includeNamespaceRoot +
 						                        String.Join("", subFolders.Select(part => "." + part));
@@ -103,11 +105,7 @@ namespace Transpiler
 						
 						var scope = transpiler.Transpile(unit.Block, classWriter, unit.Page.Literals, includeScope =>
 						{
-							foreach (var name in new[] {"Server", "Request", "Response", "Session", "Application" })
-							{
-								//Forwards to the page object.
-								includeScope.Define(name, "HostPage." + name);
-							}
+							DefineScopeForIncludeFile(includeScope);
 							foreach (var param in extraParams)
 							{
 								includeScope.Define(param.Name, $"Me.{param.Name}");
@@ -124,6 +122,10 @@ namespace Transpiler
 			{
 				throw new Exception($"Failed to transpile include: {fullPath}", ex);
 			}
+		}
+
+		protected virtual void DefineScopeForIncludeFile(IdentifierScope includeScope)
+		{
 		}
 
 		private static bool IsOutputCurrent(string input, string output)

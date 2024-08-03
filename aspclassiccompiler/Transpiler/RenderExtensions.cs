@@ -29,7 +29,13 @@ namespace Transpiler
 			}
 			else if (exp is CallOrIndexExpression cie)
 			{
-				return cie.TargetExpression.Render(scope) + "(" + cie.Arguments.Render(scope) + ")";
+				var call = cie.TargetExpression.Render(scope) + "(" + cie.Arguments.Render(scope) + ")";
+
+				if (call.EndsWith("Request.Querystring()", StringComparison.OrdinalIgnoreCase)) //Some very special case handling. In ASP, this returns a string, so we need to as well.
+				{
+					call += ".ToString()";
+				}
+				return call;
 			}
 			else if (exp is QualifiedExpression qe)
 			{

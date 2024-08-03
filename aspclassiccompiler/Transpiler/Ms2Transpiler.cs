@@ -18,61 +18,36 @@ namespace Transpiler
 
 		public Ms2Transpiler(): base(InputFolder, OutputFolder)
 		{
-			ConfigureIncludeProcessing(@"..\..\Includes", "Includes", "Includes.IncludesBase");
-		}
-
-		private static readonly HashSet<string> _elevateVariableToCompileTimeConstant = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-		{
-			"showOldBanner",
-		};
-
-		private Dictionary<string, string> _compileTimeVariableValues;
-
-		private static string OverrideVariableDeclaration(string varName, IdentifierScope scope)
-		{
-			if (scope.IsGlobal && _elevateVariableToCompileTimeConstant.Contains(varName))
-			{
-				return null;
-			}
-			
-			return varName;
+			ConfigureIncludeProcessing(@"..\..\Includes", "Includes", "Includes.IncludesBase", "CustomViewPage");
 		}
 
 		protected override MvcGenerator MakeGeneratorForFile()
 		{
-			_compileTimeVariableValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-			var generator = base.MakeGeneratorForFile();
-			generator.AddToGlobalScope = globals =>
-			{
-				foreach (var name in _elevateVariableToCompileTimeConstant)
-				{
-					globals.Define(name);
-				}
+			var generator = new Ms2MvcGenerator();
 
-				foreach (var ported in new[]{ "Array", "IsNull" })
-				{
-					globals.Define(ported, "ClassicAspPort." + ported);
-				}
-				globals.Define("MS2", null);
-			};
-			generator.OverrideVariableDeclaration = OverrideVariableDeclaration;
-			generator.OverrideVariableAssign = (name, value, scope) =>
-			{
-				if (scope.IsGlobal && _elevateVariableToCompileTimeConstant.Contains(name))
-				{
-					_compileTimeVariableValues[name] = value;
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			};
+			generator.HandleServerSideInclude = (s, writer, scope) =>
+				HandleServerSideInclude(s, writer, scope, null, generator);
+			
 			return generator;
 		}
 
+		protected override void HandleServerSideInclude(string fullPath, OutputWriter output, IdentifierScope scope,
+			IncludeClassWriter fromInclude)
+		{
+			HandleServerSideInclude(fullPath, output, scope, fromInclude, null);
+		}
 
-		protected override void HandleServerSideInclude(string fullPath, OutputWriter output, IdentifierScope scope, IncludeClassWriter fromInclude)
+		protected override void DefineScopeForIncludeFile(IdentifierScope includeScope)
+		{
+			foreach (var name in new[] { "Server", "Request", "Response", "Session", "Application", "OpenRecordSet" })
+			{
+				//Forwards to the page object.
+				includeScope.Define(name, "HostPage." + name);
+			}
+			base.DefineScopeForIncludeFile(includeScope);
+		}
+
+		protected void HandleServerSideInclude(string fullPath, OutputWriter output, IdentifierScope scope, IncludeClassWriter fromInclude, Ms2MvcGenerator generator)
 		{
 			if (fullPath.EndsWith("\\_ms2Helper.asp", StringComparison.OrdinalIgnoreCase))
 			{
@@ -108,7 +83,7 @@ namespace Transpiler
 			{
 				//I did some hacking to get it to transpile (global vars), and then I manually changed the class.
 				//var include = EnsureIncludeTranspiled(fullPath);
-				output.WriteCode($"New Includes.banner(Me, {(_compileTimeVariableValues.TryGetValue("ShowOldBanner", out var v) ? v : "false")})", true);
+				output.WriteCode($"New Includes.banner(Me, {(generator?.CompileTimeVariableValues?.TryGetValue("ShowOldBanner", out var v) == true ? v : "false")})", true);
 			}
 			else
 			{

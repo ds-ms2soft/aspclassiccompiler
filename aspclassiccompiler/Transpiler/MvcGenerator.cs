@@ -11,24 +11,26 @@ namespace Transpiler
 	{
 		private VB.ScriptBlock _script;
 
-		private OutputWriter _output;
+		protected OutputWriter Output;
 
 		private IReadOnlyList<string> _literals;
-
-		public Action<IdentifierScope> AddToGlobalScope { get; set; }
 
 		public IdentifierScope Transpile(VB.ScriptBlock script, OutputWriter output, IReadOnlyList<string> literals, Action<IdentifierScope> defineExtraIdentifiers = null)
 		{
 			_script = script;
-			_output = output;
+			Output = output;
 			_literals = literals;
 			var globalScope = IdentifierScope.MakeGlobal();
-			AddToGlobalScope?.Invoke(globalScope);
+			AddToGlobalScope(globalScope);
 			var localScope = new IdentifierScope(globalScope);
 			defineExtraIdentifiers?.Invoke(localScope);
 			AddSubAndMethodDeclarationsToScope(_script.Statements, localScope);
 			Process(_script.Statements, localScope, false);
 			return localScope;
+		}
+
+		protected virtual void AddToGlobalScope(IdentifierScope scope)
+		{
 		}
 
 		private void AddSubAndMethodDeclarationsToScope(VB.StatementCollection statements, IdentifierScope scope)
@@ -43,7 +45,7 @@ namespace Transpiler
 		}
 		private void Process(VB.StatementCollection statements, IdentifierScope scope, bool beginBlock)
 		{
-			var block = beginBlock ? _output.BeginBlock() : null;
+			var block = beginBlock ? Output.BeginBlock() : null;
 			try
 			{
 				foreach (VB.Statement statement in statements ?? Array.Empty<VB.Statement>().AsEnumerable())
@@ -180,7 +182,7 @@ namespace Transpiler
 				//}
 				else if (expr is VB.EmptyStatement)
 				{
-					_output.WriteCode(Environment.NewLine + Environment.NewLine, false);
+					Output.WriteCode(Environment.NewLine + Environment.NewLine, false);
 				}
 				else if (expr is VB.OptionDeclaration)
 				{
@@ -236,8 +238,14 @@ namespace Transpiler
 		public Action<string, OutputWriter, IdentifierScope> HandleServerSideInclude { get; set; } = (s, writer, arg3) =>
 			throw new NotImplementedException($"Provide HandleServerSideInclude (include: {s})");
 
+		public bool IsIncludeFile { get; set; }
+
 		private void ProcessCall(VB.CallStatement statement, IdentifierScope scope)
 		{
+			if (statement.Matches("HostPage.Request.QueryString"))
+			{
+				throw new NotImplementedException("Response.QueryString is not yet implemented.");
+			}
 			if (statement.Matches("Response.Write") || 
 			    (statement.Matches("Write") && scope is IdentifierScopeWithBlock with && with.Source.Equals("Response", StringComparison.OrdinalIgnoreCase)))
 			{
@@ -250,22 +258,22 @@ namespace Transpiler
 				{
 					var arg0 = (VB.CallOrIndexExpression)statement.Arguments.ElementAt(0).Expression;
 					var index = ((VB.IntegerLiteralExpression)arg0.Arguments.ElementAt(0).Expression).Literal;
-					_output.WriteLiteral(_literals[index]);
+					Output.WriteLiteral(_literals[index]);
 				}
 				else
 				{
 					//translate this to Html.Raw instead.
-					_output.WriteCode($"@Html.Raw({statement.Arguments.Render(scope)})", true);
+					Output.WriteCode($"@Html.Raw({statement.Arguments.Render(scope)})", true);
 				}
 			}
 			else if (statement.Matches(AspPageDom.ServerSideInclude))
 			{
 				var path = Path.GetFullPath(((VB.StringLiteralExpression)statement.Arguments.First().Expression).Literal);
-				HandleServerSideInclude(path, _output, scope);
+				HandleServerSideInclude(path, Output, scope);
 			}
 			else
 			{
-				_output.WriteCode($"{statement.TargetExpression.Render(scope)}({statement.Arguments.Render(scope)})", true);
+				Output.WriteCode($"{statement.TargetExpression.Render(scope)}({statement.Arguments.Render(scope)})", true);
 			}
 		}
 
@@ -322,18 +330,13 @@ namespace Transpiler
 			if (line.Length > 0)
 			{
 				line = stmt.Modifiers.ElementAt(0) + " " + line;
-				_output.WriteCode(line, true);
+				Output.WriteCode(line, true);
 			}
 		}
 
-		public Func<string, IdentifierScope, string> OverrideVariableDeclaration { get; set; } = (x, scope) => x;
-		public Func<string, string, IdentifierScope, bool> OverrideVariableAssign { get; set; } = (variable, value, scope) => false;
+		protected virtual string OverrideVariableDeclaration(string name, IdentifierScope scope) => name;
 
-		// GenerateAssignExpr handles IDs, indexing, and member sets.  IDs are either
-		// lexical or dynamic exprs on the module scope.  Everything
-		// else is dynamic.
-		//
-		private void GenerateAssignExpr(VB.AssignmentStatement expr, IdentifierScope scope)
+		protected virtual void GenerateAssignExpr(VB.AssignmentStatement expr, IdentifierScope scope)
 		{
 			using var newVariables = scope.WithVariableDefinitionHandling();
 			
@@ -341,13 +344,14 @@ namespace Transpiler
 				expr.TargetExpression.Render(scope,
 					IdentifierScope.UndefinedHandling.AllowAndDefine); //Define because we are an assignment
 			var value = expr.SourceExpression.Render(scope);
+			var isNewVariable = newVariables.WasDefined(variable);
 
+			GenerateAssignExpr(isNewVariable, variable, value, scope);
+		}
 
-			if (!OverrideVariableAssign(variable, value, scope))
-			{
-				_output.WriteCode((newVariables.WasDefined(variable) ? "Dim " : "") +variable + " = " + value, true);
-			}
-
+		protected virtual void GenerateAssignExpr(bool isUndefined, string variable, string value, IdentifierScope scope)
+		{
+			Output.WriteCode((isUndefined ? "Dim " : "") + variable + " = " + value, true);
 		}
 
 		private void GenerateForBlockExpr(VB.ForBlockStatement forBlock,
@@ -359,11 +363,11 @@ namespace Transpiler
 			}
 			
 			var innerScope = new IdentifierScope(scope);
-			_output.WriteCode($"For {forBlock.ControlExpression.Render(innerScope, IdentifierScope.UndefinedHandling.AllowAndDefine)} = {forBlock.LowerBoundExpression.Render(innerScope)} To {forBlock.UpperBoundExpression.Render(innerScope)}", true);
+			Output.WriteCode($"For {forBlock.ControlExpression.Render(innerScope, IdentifierScope.UndefinedHandling.AllowAndDefine)} = {forBlock.LowerBoundExpression.Render(innerScope)} To {forBlock.UpperBoundExpression.Render(innerScope)}", true);
 
 			Process(forBlock.Statements, innerScope, true);
 
-			_output.WriteCode("Next", true);
+			Output.WriteCode("Next", true);
 		}
 
 		private void GenerateDoBlockExpr(VB.DoBlockStatement doBlock,
@@ -378,15 +382,15 @@ namespace Transpiler
 			{
 				if (doBlock.IsWhile) //do while ... loop
 				{
-					_output.WriteCode($"Do while {doBlock.Expression.Render(scope)}", true);
+					Output.WriteCode($"Do while {doBlock.Expression.Render(scope)}", true);
 					outputBody();
-					_output.WriteCode("Loop", true);
+					Output.WriteCode("Loop", true);
 				}
 				else // do until ... loop
 				{
-					_output.WriteCode("Do", true);
+					Output.WriteCode("Do", true);
 					outputBody();
-					_output.WriteCode($"Until {doBlock.Expression.Render(scope)}", true);
+					Output.WriteCode($"Until {doBlock.Expression.Render(scope)}", true);
 				}
 			}
 			else
@@ -412,19 +416,19 @@ namespace Transpiler
 		public void GenerateWhileBlockExpr(VB.WhileBlockStatement whileBlock,
 			IdentifierScope scope)
 		{
-			_output.WriteCode($"While {whileBlock.Expression.Render(scope)}", true);
+			Output.WriteCode($"While {whileBlock.Expression.Render(scope)}", true);
 			Process(whileBlock.Statements, scope, true);
-			_output.WriteCode("End While", true);
+			Output.WriteCode("End While", true);
 		}
 
 		public void GenerateWithBlockExpr(VB.WithBlockStatement withBlock,
 			IdentifierScope scope)
 		{
 			var source = withBlock.Expression.Render(scope);
-			_output.WriteCode($"With {source}", true);
+			Output.WriteCode($"With {source}", true);
 			var innerScope = new IdentifierScopeWithBlock(source, scope);
 			Process(withBlock.Statements, innerScope, true);
-			_output.WriteCode("End With", true);
+			Output.WriteCode("End With", true);
 		}
 
 		private void GenerateMethodExpr(VB.MethodDeclaration method, IdentifierScope scope)
@@ -451,16 +455,16 @@ namespace Transpiler
 			}
 
 			var methodScope = new IdentifierScope(scope);
-			_output.WriteCode($"{keyword} {name}({method.Parameters.Render(methodScope)})", true);
+			Output.WriteCode($"{keyword} {name}({method.Parameters.Render(methodScope)})", true);
 			Process(method.Statements, methodScope, true);
-			_output.WriteCode($"End {keyword}", true);
+			Output.WriteCode($"End {keyword}", true);
 		}
 
 		private void GenerateIfExpr(VB.IfBlockStatement ifBlock, IdentifierScope scope)
 		{
 			void writeIf(string type, VB.Expression testExpression, VB.StatementCollection body)
 			{
-				_output.WriteCode($"{type} {testExpression.Render(scope)} Then", true);
+				Output.WriteCode($"{type} {testExpression.Render(scope)} Then", true);
 				Process(body, scope, true);
 			}
 
@@ -476,10 +480,10 @@ namespace Transpiler
 
 			if (ifBlock.ElseBlockStatement != null)
 			{
-				_output.WriteCode("Else", true);
+				Output.WriteCode("Else", true);
 				Process(ifBlock.ElseBlockStatement.Statements, scope, true);
 			}
-			_output.WriteCode($"End If", true);
+			Output.WriteCode($"End If", true);
 		}
 
 		private void GenerateOnErrorStatement(VB.OnErrorStatement onError)
@@ -487,11 +491,11 @@ namespace Transpiler
 			switch (onError.OnErrorType)
 			{
 				case VB.OnErrorType.Next:
-					_output.WriteCode("On Error Resume Next", true);
+					Output.WriteCode("On Error Resume Next", true);
 					break;
 				case VB.OnErrorType.Zero:
 				case VB.OnErrorType.MinusOne:
-					_output.WriteCode("On Error Goto 0", true);
+					Output.WriteCode("On Error Goto 0", true);
 					break;
 				default:
 					throw new ArgumentOutOfRangeException($"Unimplemented error type: {onError.OnErrorType}");
@@ -519,30 +523,30 @@ namespace Transpiler
 				code += variable.TargetExpression.Render(scope) + $"({variable.Arguments.Render(scope)})";
 			}
 
-			_output.WriteCode(code, true);
+			Output.WriteCode(code, true);
 		}
 
 		private void GenerateSelectBlockExpr(VB.SelectBlockStatement selectBlock,
 			IdentifierScope scope)
 		{
-			_output.WriteCode("Select Case " + selectBlock.Expression.Render(scope), true);
-			using (var _ = _output.BeginBlock())
+			Output.WriteCode("Select Case " + selectBlock.Expression.Render(scope), true);
+			using (var _ = Output.BeginBlock())
 			{
 				if (selectBlock.CaseBlockStatements != null)
 				{
 					foreach (VB.CaseBlockStatement @case in selectBlock.CaseBlockStatements)
 					{
-						_output.WriteCode("Case " + @case.CaseStatement.CaseClauses.Render(scope), true);
+						Output.WriteCode("Case " + @case.CaseStatement.CaseClauses.Render(scope), true);
 						Process(@case.Statements, scope, true);
 					}
 				}
 				if (selectBlock.CaseElseBlockStatement != null)
 				{
-					_output.WriteCode("Case Else", true);
+					Output.WriteCode("Case Else", true);
 					Process(selectBlock.CaseElseBlockStatement.Statements, scope, true);
 				}
 			}
-			_output.WriteCode("End Select", true);
+			Output.WriteCode("End Select", true);
 		}
 
 		private void GenerateBreakExpr(VB.ExitStatement expr,
@@ -551,10 +555,10 @@ namespace Transpiler
 			switch (expr.ExitType)
 			{
 				case Dlrsoft.VBScript.Parser.BlockType.Function:
-					_output.WriteCode("Exit Function", true);
+					Output.WriteCode("Exit Function", true);
 					break;
 				case Dlrsoft.VBScript.Parser.BlockType.Sub:
-					_output.WriteCode("Exit Sub", true);
+					Output.WriteCode("Exit Sub", true);
 					break;
 				case Dlrsoft.VBScript.Parser.BlockType.Do:
 				case Dlrsoft.VBScript.Parser.BlockType.For:
