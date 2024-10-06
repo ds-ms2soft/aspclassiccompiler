@@ -141,7 +141,8 @@ namespace Dlrsoft.VBScript.Parser
 				AddKeyword(Table, "Me", new Keyword(LanguageVersion.All, LanguageVersion.All, TokenType.Me));
 				AddKeyword(Table, "Mid", new Keyword(LanguageVersion.All, LanguageVersion.None, TokenType.Mid));
 				AddKeyword(Table, "Mod", new Keyword(LanguageVersion.All, LanguageVersion.All, TokenType.Mod));
-				AddKeyword(Table, "Module", new Keyword(LanguageVersion.All, LanguageVersion.All, TokenType.Module));
+				//Note  module is a keyword in VB.NET, but not in VBScript, and we use it as an identifier in VBScript everywhere
+				//AddKeyword(Table, "Module", new Keyword(LanguageVersion.All, LanguageVersion.All, TokenType.Module));
 				AddKeyword(Table, "MustInherit", new Keyword(LanguageVersion.All, LanguageVersion.All, TokenType.MustInherit));
 				AddKeyword(Table, "MustOverride", new Keyword(LanguageVersion.All, LanguageVersion.All, TokenType.MustOverride));
 				AddKeyword(Table, "MyBase", new Keyword(LanguageVersion.All, LanguageVersion.All, TokenType.MyBase));
