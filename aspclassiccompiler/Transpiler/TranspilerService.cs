@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Dlrsoft.Asp;
 using Dlrsoft.VBScript.Parser;
 using File = System.IO.File;
@@ -28,18 +29,32 @@ namespace Transpiler
 			_outputFolderBase = outputFolderBase;
 		}
 
+		private readonly HashSet<Regex> _ignoreFiles = [new Regex(@"\.aspx$", RegexOptions.IgnoreCase)]; //ignore aspx files by default
+
+		public TranspilerService IgnoreFile(Regex matches)
+		{
+			_ignoreFiles.Add(matches);
+			return this;
+		}
+
 		/// <summary>
 		/// Returns the number of files with errors (which won't be transpiled).
 		/// </summary>
 		public int ParseAllFiles()
 		{
 			var all = Directory.GetFiles(_sourceFolderBase, "*.asp", SearchOption.AllDirectories)
-				.Where(x => Path.GetExtension(x) == ".asp"); //filter out .aspx
+				.Where(x => !_ignoreFiles.Any(regex => regex.IsMatch(x)));
 			
 			_unitsByPath = all.ToDictionary(path => path, TranspileUnit.Parse, StringComparer.OrdinalIgnoreCase);
 			return _unitsByPath.Count(unit => unit.Value.HasErrors);
 		}
 
+		public IEnumerable<string> GetErrors()
+			=>
+				_unitsByPath.Where(unit => unit.Value.HasErrors)
+					.Select(unit =>
+						$"{unit.Value.AbsolutePath}: {String.Join("\n\t", unit.Value.ErrorTable.Select(se => se.ToString()))}");
+		
 		public void VisitInvalid(Action<string, TranspileUnit> action)
 		{
 			foreach (var keyValuePair in _unitsByPath.Where(unit => unit.Value.HasErrors))
