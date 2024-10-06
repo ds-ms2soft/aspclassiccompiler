@@ -37,13 +37,16 @@ namespace Transpiler
 			return this;
 		}
 
+		private bool IsPathAllowed(string fullPath)
+			=> !_ignoreFiles.Any(regex => regex.IsMatch(fullPath));
+
 		/// <summary>
 		/// Returns the number of files with errors (which won't be transpiled).
 		/// </summary>
 		public int ParseAllFiles()
 		{
 			var all = Directory.GetFiles(_sourceFolderBase, "*.asp", SearchOption.AllDirectories)
-				.Where(x => !_ignoreFiles.Any(regex => regex.IsMatch(x)));
+				.Where(IsPathAllowed);
 			
 			_unitsByPath = all.ToDictionary(path => path, TranspileUnit.Parse, StringComparer.OrdinalIgnoreCase);
 			return _unitsByPath.Count(unit => unit.Value.HasErrors);
@@ -63,9 +66,14 @@ namespace Transpiler
 			}
 		}
 
+		/// <summary>
+		/// This method identifies all the include files used by the source files.
+		/// This may include some that aren't .asp files, (so aren't in the normal file list) but need to parsed as such.
+		/// </summary>
 		public void IdentifyIncludes()
 		{
 			_includePagesByPath = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+			
 			foreach (var unit in _unitsByPath.Values.Where(tu => !tu.HasErrors))
 			{
 				unit.Block.VisitAll<CallStatement>(exp =>
