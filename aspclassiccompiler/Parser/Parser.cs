@@ -6394,6 +6394,13 @@ namespace Dlrsoft.VBScript.Parser
 
 			ValidateModifierList(modifiers, ValidModifiers);
 			PropertyLocation = ReadLocation();
+			if (Peek().Type == TokenType.Get)
+			{
+				//DS: This is a property with a Get keyword. Not sure why it's not supported
+				//it feels like it should use GetAccessorDeclaration, but that doesn't handle the name of the property
+				//I'm not sure this part has been implemented correctly, but it's only used in a few places in our codebase
+				ReportSyntaxError(SyntaxErrorType.NotImplemented, Peek());
+			}
 			Name = ParseSimpleName(false);
 
 			if (ErrorInConstruct)
