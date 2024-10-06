@@ -370,7 +370,7 @@ namespace Transpiler
 				{
 					Output.WriteCode("Do", true);
 					outputBody();
-					Output.WriteCode($"Until {doBlock.Expression.Render(scope)}", true);
+					Output.WriteCode($"Loop Until {doBlock.Expression.Render(scope)}", true);
 				}
 			}
 			else
