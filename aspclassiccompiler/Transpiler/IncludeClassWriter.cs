@@ -23,7 +23,7 @@ namespace Transpiler
 
 		public void AddConstructorParam(string name, string type)
 		{
-			_constructorBody.Add($"Me.{name} = {name}");
+			_constructorInitialization.Add($"Me.{name} = {name}");
 			_fields.Add($"Private {name} As {type}");
 			_constructor += $", {name} As {type}";
 		}
@@ -48,6 +48,7 @@ namespace Transpiler
 					using (var _3 = BeginBlock())
 					{
 						WriteLineWithIndent("MyBase.New(hostPage)");
+						WriteLinesWithIndent(_constructorInitialization);
 						WriteLinesWithIndent(_constructorBody);
 					}
 					WriteLineWithIndent("End Sub" + Environment.NewLine);
@@ -88,6 +89,7 @@ namespace Transpiler
 		}
 
 		private List<string> _fields = new List<string>();
+		private List<string> _constructorInitialization = new List<string>();
 		private List<string> _constructorBody = new List<string>();
 		private List<string> _SubsAndFunctions = new List<string>();
 
