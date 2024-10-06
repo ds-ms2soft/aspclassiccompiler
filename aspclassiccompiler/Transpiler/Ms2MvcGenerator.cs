@@ -44,6 +44,7 @@ namespace Transpiler
 			}
 			scope.Define("MS2", null);
 			scope.Define("DataConn");
+			scope.Define("MM_CONN_STRING", "CustomViewPage.ConnectionString");
 			base.AddToGlobalScope(scope);
 		}
 
