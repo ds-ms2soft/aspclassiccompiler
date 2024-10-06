@@ -226,10 +226,7 @@ namespace Transpiler
 
 			if (!IsOutputCurrent(filePath, output))
 			{
-				var transpiler = new MvcGenerator()
-				{
-					HandleServerSideInclude = (s, writer, arg3) => HandleServerSideInclude(s, writer, arg3, null)
-				};
+				var transpiler = MakeGeneratorForFile();
 
 				using (var outFile = File.Open(output, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
 				using (var writer = new StreamWriter(outFile))
