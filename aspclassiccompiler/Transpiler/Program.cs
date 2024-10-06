@@ -24,8 +24,6 @@ namespace Transpiler
 		 *
 		 * -Convert ADO commands to proxy objects
 		 * -security.vb /ref_path isn't properly being hoisted (asset_archive_delete.asp)");
-		 * -Handle some include files that are actually ASP, but don't have asp extensions (C:\source\TDMS\TCDS.Web\ajax\functions.asp.js)
-		 * -Some of those includes don't have ASP code, but do have HTML code (script tags) (C:\source\TDMS\TCDS.Web\ajax\functions_ttds.js) We could just transpile those to, or could convert them to normal JS script includes?
 		 */
 		[Test]
 		public void TranspileAll()
