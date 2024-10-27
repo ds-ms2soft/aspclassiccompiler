@@ -75,8 +75,15 @@ namespace Transpiler
 		}
 		private void WriteLineWithIndent(string line)
 		{
-			_underlying.Write(GetIndentation());
-			_underlying.WriteLine(line);
+			if (line == "\r\n")
+			{
+				_underlying.WriteLine();
+			}
+			else
+			{
+				_underlying.Write(GetIndentation());
+				_underlying.WriteLine(line);
+			}
 		}
 
 
@@ -102,6 +109,11 @@ namespace Transpiler
 			{
 				text = "Public " + text;
 				_isInSubOrFunction = true;
+				_SubsAndFunctions.Add("\r\n");
+				if (_SubsAndFunctions.Count > 0)
+				{
+					//_SubsAndFunctions.Add("\r\n");
+				}
 			}
 
 			if (text.StartsWith("@Html.Raw", StringComparison.OrdinalIgnoreCase))
@@ -112,14 +124,21 @@ namespace Transpiler
 			if (_isInSubOrFunction)
 			{
 				_SubsAndFunctions.Add(GetIndentation() + text);
+				if (text.StartsWith("End Sub", StringComparison.OrdinalIgnoreCase) ||
+				    text.StartsWith("End Function", StringComparison.OrdinalIgnoreCase))
+				{
+					_isInSubOrFunction = false;
+				}
 			}
-			/*I don't think I want to elevate everything to a public field, but how do I handle actual variables that are being exposed from headers to their parents?
-			 else if (text.StartsWith("Const", StringComparison.OrdinalIgnoreCase) ||
-			         text.StartsWith("Dim", StringComparison.OrdinalIgnoreCase) ||
-			         text.StartsWith("ReDim", StringComparison.OrdinalIgnoreCase))
+			else if (text.StartsWith("ReDim", StringComparison.OrdinalIgnoreCase))
+			{
+				_fields.Add("'TODO (is this needed): " + text); 
+			}
+			else if (text.StartsWith("Const", StringComparison.OrdinalIgnoreCase) ||
+			         text.StartsWith("Dim", StringComparison.OrdinalIgnoreCase))
 			{
 				_fields.Add("Public " + text);
-			}*/
+			}
 			else if (String.IsNullOrWhiteSpace(text))
 			{
 				//Ignore this, probably don't care
