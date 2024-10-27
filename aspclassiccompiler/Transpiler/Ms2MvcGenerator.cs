@@ -18,6 +18,7 @@ namespace Transpiler
 		private static readonly HashSet<string> _elevateVariableToCompileTimeConstant = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
 		{
 			"showOldBanner",
+			"ref_path",
 		};
 
 		public readonly Dictionary<string, string> CompileTimeVariableValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

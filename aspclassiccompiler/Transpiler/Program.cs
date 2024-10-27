@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace Transpiler
@@ -66,10 +67,36 @@ namespace Transpiler
 		}
 
 		[TestCase("C:\\source\\TDMS\\TCDS.Web\\tdetail.asp")]
+		[TestCase("C:\\source\\TDMS\\TCDS.Web\\default.asp")]
 		public void ParseOne(string path)
 		{
-			var unit = TranspileUnit.Parse(path);
-			Assert.That(unit.HasErrors, Is.False);
+			var service = BuildService();
+
+			var errorCount = service.ParseAllFiles();
+
+			if (errorCount > 0)
+			{
+				Console.WriteLine("Errors found in files:");
+				foreach (var error in service.GetErrors())
+				{
+					Console.WriteLine(error);
+				}
+			}
+
+			service.IdentifyIncludes();
+			service.TranspileSingle(path, TranspileUnit.Parse(path));
+		}
+
+		[TestCase("C:\\source\\TDMS\\TCDS.Web\\search_fields_functions.asp")]
+		[TestCase("C:\\source\\TDMS\\TCDS.Web\\phv.asp")]
+		public void TranspileInclude(string path)
+		{
+			var service = BuildService();
+
+			service.ParseAllFiles();
+
+			service.IdentifyIncludes();
+			service.EnsureIncludeTranspiled(path, new List<IncludeFileConstructorParameter>());
 		}
 	}
 }

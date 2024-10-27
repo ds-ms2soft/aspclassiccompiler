@@ -52,6 +52,16 @@ namespace Transpiler
 			if (fullPath.EndsWith("\\_ms2Helper.asp", StringComparison.OrdinalIgnoreCase))
 			{
 				scope.Define("MS2", null);
+				scope.Define("headerModules", "Ms2Helper.HeaderModules");
+			}
+			else if (fullPath.EndsWith("\\security.asp", StringComparison.OrdinalIgnoreCase))
+			{
+				HandleServerSideInclude(fullPath, output, scope, fromInclude, new[]
+				{
+					new IncludeFileConstructorParameter { Name = "ref_path", Type = "string", DefaultIfMissing = "\"\"", 
+						StaticValue = generator?.CompileTimeVariableValues.TryGetValue("ref_path", out var ref_path) == true ? ref_path : null
+					}
+				});
 			}
 			else if (fullPath.EndsWith("\\_hack.asp", StringComparison.OrdinalIgnoreCase))
 			{
@@ -75,8 +85,7 @@ namespace Transpiler
 					new IncludeFileConstructorParameter { Name = "num_records", Type = "Long", DefaultIfMissing = "0" },
 					new IncludeFileConstructorParameter { Name = "is_new", Type = "Boolean", DefaultIfMissing = "False" },
 					new IncludeFileConstructorParameter { Name = "is_edit", Type = "Boolean", DefaultIfMissing = "False" },
-					new IncludeFileConstructorParameter { Name = "rst", Type = "Object", DefaultIfMissing = "Nothing" },
-
+					new IncludeFileConstructorParameter { Name = "rst", Type = "Object", DefaultIfMissing = "Nothing" }
 				});
 			}
 			else if (fullPath.EndsWith("\\banner.asp", StringComparison.OrdinalIgnoreCase))
