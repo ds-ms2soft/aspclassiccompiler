@@ -80,6 +80,10 @@ namespace Transpiler
 					throw new NotSupportedException("Null identifier found outside of With block.");
 				}
 			}
+			else if (exp is NewExpression @new)
+			{
+				return "New "+ @new.Target + "(" + @new.Arguments.Render(scope) + ")";
+			}
 			else
 			{
 				throw new NotImplementedException($"Can't render: {exp.GetType().Name}");
