@@ -347,13 +347,19 @@ namespace Transpiler
 		private void GenerateForBlockExpr(VB.ForBlockStatement forBlock,
 			IdentifierScope scope)
 		{
-			if (forBlock.StepExpression != null || forBlock.ControlVariableDeclarator != null)
+			if ( forBlock.ControlVariableDeclarator != null)
 			{
 				throw new NotImplementedException();
 			}
 			
 			var innerScope = new IdentifierScope(scope);
-			Output.WriteCode($"For {forBlock.ControlExpression.Render(innerScope, IdentifierScope.UndefinedHandling.AllowAndDefine)} = {forBlock.LowerBoundExpression.Render(innerScope)} To {forBlock.UpperBoundExpression.Render(innerScope)}", true);
+			var openBlock =
+				$"For {forBlock.ControlExpression.Render(innerScope, IdentifierScope.UndefinedHandling.AllowAndDefine)} = {forBlock.LowerBoundExpression.Render(innerScope)} To {forBlock.UpperBoundExpression.Render(innerScope)}";
+			if (forBlock.StepExpression != null)
+			{
+				openBlock += $" Step {forBlock.StepExpression.Render(innerScope)}";
+			}
+			Output.WriteCode(openBlock, true);
 
 			Process(forBlock.Statements, innerScope, true);
 
