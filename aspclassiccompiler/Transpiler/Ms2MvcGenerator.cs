@@ -47,6 +47,7 @@ namespace Transpiler
 			scope.Define("DataConn");
 			scope.Define("MM_CONN_STRING", "CustomViewPage.ConnectionString");
 			scope.Define("ExecuteWithSessionContext", "CustomViewPage.ExecuteWithSessionContext");
+			scope.Define("ExecuteQuery");
 			base.AddToGlobalScope(scope);
 		}
 
