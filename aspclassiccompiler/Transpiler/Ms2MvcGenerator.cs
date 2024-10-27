@@ -48,6 +48,48 @@ namespace Transpiler
 			scope.Define("MM_CONN_STRING", "CustomViewPage.ConnectionString");
 			scope.Define("ExecuteWithSessionContext", "CustomViewPage.ExecuteWithSessionContext");
 			scope.Define("ExecuteQuery");
+			foreach (var name in new string[]{"adBoolean"
+				         ,"adSmallInt"
+				         ,"adInteger"
+				         ,"adTinyInt"
+				         ,"adUnsignedTinyInt"
+				         ,"adUnsignedSmallInt"
+				         ,"adUnsignedInt"
+				         ,"adBigInt"
+				         ,"adUnsignedBigInt"
+				         ,"adSingle"
+				         ,"adDouble"
+				         ,"adCurrency"
+				         ,"adDecimal"
+				         ,"adVarNumeric"
+				         ,"adDate"
+				         ,"adDBDate"
+				         ,"adDBTime"
+				         ,"adDBTimeStamp"
+				         ,"adFileTime"
+				         ,"adBSTR"
+				         ,"adChar"
+				         ,"adWChar"
+				         ,"adNumeric"
+				         ,"adUserDefined"
+				         ,"adPropVariant"
+				         ,"adVarChar"
+				         ,"adLongVarChar"
+				         ,"adVarWChar"
+				         ,"adLongVarWChar"
+				         ,"adBinary"
+				         ,"adVarBinary"
+				         ,"adLongVarBinary"
+				         ,"adEmpty"
+				         ,"adIDispatch"
+				         ,"adError"
+				         ,"adVariant"
+				         ,"adIUnknown"
+				         ,"adGUID"
+				         ,"adChapter"})
+			{
+				scope.Define(name, "Includes.functions.sql_datatypes." + name);
+			}
 			base.AddToGlobalScope(scope);
 		}
 
