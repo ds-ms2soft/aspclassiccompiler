@@ -123,24 +123,39 @@ namespace Transpiler
 						classWriter.BaseClass = _includeBaseClassName;
 						classWriter.ClassName =
 							Path.GetFileNameWithoutExtension(new FileInfo(fullPath).Name); //Filename controls the case
-						extraParams = extraParams ?? Enumerable.Empty<IncludeFileConstructorParameter>();
+						var extraParamList = new List<IncludeFileConstructorParameter>(extraParams ?? Enumerable.Empty<IncludeFileConstructorParameter>());
 						transpiler.HandleServerSideInclude = (path, output2, scope2) =>
 						{
 							HandleServerSideInclude(path, output2, scope2, classWriter);
 						};
-						foreach (var param in extraParams)
-						{
-							classWriter.AddConstructorParam(param.Name, param.Type);
-						}
-						
+
+						//Problems here
+						//Include files have sort of global scope for the things they define.
+						//We are just defining them as local variables in the constructor, which means that functions defined in the include file can't access them
+						//but they still appear as in scope, because we don't use a separate scope for the constructor.
+						//How can we elevate those to class level parameters?
 						var scope = transpiler.Transpile(unit.Block, classWriter, unit.Page.Literals, includeScope =>
 						{
 							DefineScopeForIncludeFile(includeScope);
-							foreach (var param in extraParams)
+							foreach (var param in extraParamList)
 							{
 								includeScope.Define(param.Name, $"Me.{param.Name}");
 							}
+						}, (identifierScope, variable) =>
+						{
+							extraParamList.Add(new IncludeFileConstructorParameter()
+							{
+								Name = variable,
+								Type = "Object",
+							});
+							identifierScope.Define(variable, $"Me.{variable}");
 						});
+
+						foreach (var param in extraParamList)
+						{
+							classWriter.AddConstructorParam(param.Name, param.Type);
+						}
+
 						unit.IncludeClassName = String.Join(".", classWriter.Namespace, classWriter.ClassName);
 						unit.IncludeScope = scope;
 					}

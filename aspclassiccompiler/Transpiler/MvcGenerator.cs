@@ -15,7 +15,7 @@ namespace Transpiler
 
 		private IReadOnlyList<string> _literals;
 
-		public IdentifierScope Transpile(VB.ScriptBlock script, OutputWriter output, IReadOnlyList<string> literals, Action<IdentifierScope> defineExtraIdentifiers = null)
+		public IdentifierScope Transpile(VB.ScriptBlock script, OutputWriter output, IReadOnlyList<string> literals, Action<IdentifierScope> defineExtraIdentifiers = null, Action<IdentifierScope, string> onUndefinedVariable = null)
 		{
 			_script = script;
 			Output = output;
@@ -25,6 +25,9 @@ namespace Transpiler
 			var localScope = new IdentifierScope(globalScope);
 			defineExtraIdentifiers?.Invoke(localScope);
 			AddSubAndMethodDeclarationsToScope(_script.Statements, localScope);
+			
+			onUndefinedVariable ??= ((scope, name) => throw new NotImplementedException($"Page level variable {name} is not defined"));
+			using var newVariables = localScope.WithVariableDefinitionHandling((scope, variable, _) => onUndefinedVariable(scope, variable));
 			Process(_script.Statements, localScope, false);
 			return localScope;
 		}
@@ -318,13 +321,20 @@ namespace Transpiler
 
 		protected virtual void GenerateAssignExpr(VB.AssignmentStatement expr, IdentifierScope scope)
 		{
-			using var newVariables = scope.WithVariableDefinitionHandling();
-			
-			var variable =
-				expr.TargetExpression.Render(scope,
-					IdentifierScope.UndefinedHandling.AllowAndDefine); //Define because we are an assignment
+			bool isNewVariable = false;
+			string variable;
+			using (scope.WithVariableDefinitionHandling((identifierScope, variableName, fallback) =>
+			       {
+				       isNewVariable = true;
+				       identifierScope.Define(variableName);
+			       }))
+			{
+				variable =
+					expr.TargetExpression.Render(scope,
+						IdentifierScope.UndefinedHandling.AllowAndDefine); //Define because we are an assignment
+			}
+
 			var value = expr.SourceExpression.Render(scope);
-			var isNewVariable = newVariables.WasDefined(variable);
 
 			GenerateAssignExpr(isNewVariable, variable, value, scope);
 		}

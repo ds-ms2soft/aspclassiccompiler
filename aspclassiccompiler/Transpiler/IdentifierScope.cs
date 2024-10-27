@@ -19,8 +19,7 @@ namespace Transpiler
 		public IdentifierScope ParentScope { get; }
 		public bool IsGlobal => ParentScope == null;
 
-		private readonly List<string> _undefinedIdentifiers = new List<string>();
-
+		
 		private readonly Dictionary<string, string> _identifiers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
 		private static readonly Dictionary<string, string> GlobalIdentifiers = new Dictionary<string, string>
@@ -83,23 +82,26 @@ namespace Transpiler
 
 				if (!rv)
 				{
-					if (undefined == UndefinedHandling.Throw)
+					if (undefined == UndefinedHandling.Ignore)
 					{
-						throw new NotSupportedException($"Identifier not found: {name}");
+						//Name is used in a context that we can't validate. We want to do our scope search to support substitutions, but if not found, we'll just return the name.
+						found = name;
+						rv = false;
+					}
+					else if (_onUndefinedVariable != null)
+					{
+						_onUndefinedVariable?.Handle(this, name);
+						rv = _identifiers.TryGetValue(name, out found);
 					}
 					else if (undefined == UndefinedHandling.AllowAndDefine)
 					{
-						_undefinedIdentifiers.Add(name);
-						_onUndefinedVariable?.Define(name);
 						Define(name);
 						found = name;
 						rv = true;
 					}
 					else
 					{
-						_undefinedIdentifiers.Add(name);
-						found = name;
-						rv = false;
+						throw new NotSupportedException($"Identifier not found: {name}");
 					}
 				}
 
@@ -124,31 +126,42 @@ namespace Transpiler
 		public bool TryGetIdentifier(string paramName, out string scopedName)
 			=> GetIdentifier(paramName, UndefinedHandling.Ignore, out scopedName);
 
-		public VariableDefinitionHandling WithVariableDefinitionHandling()
+		public VariableDefinitionHandling WithVariableDefinitionHandling(Action<IdentifierScope, string, Action> handle)
 		{
 			var old = _onUndefinedVariable;
-			return _onUndefinedVariable = new VariableDefinitionHandling(() => _onUndefinedVariable = old);
+			return _onUndefinedVariable = new VariableDefinitionHandling(handle, old, () => _onUndefinedVariable = old);
 		}
 
 		private VariableDefinitionHandling _onUndefinedVariable = null;
 
 		public class VariableDefinitionHandling : IDisposable
 		{
+			private readonly Action<IdentifierScope, string, Action> _handle;
+			private readonly VariableDefinitionHandling _prior;
 			private readonly Action _onDispose;
-			public VariableDefinitionHandling(Action onDispose)
+
+			public VariableDefinitionHandling(Action<IdentifierScope, string, Action> handle, VariableDefinitionHandling prior, Action onDispose)
 			{
+				_handle = handle;
+				_prior = prior;
 				_onDispose = onDispose;
 			}
-			private readonly HashSet<string> _definedVariables = new HashSet<string>();
 
-			public bool WasDefined(string name)
+			private void PassUp(IdentifierScope scope, string name)
 			{
-				return _definedVariables.Contains(name);
+				if (_prior != null)
+				{
+					_prior.Handle(scope, name);
+				}
+				else
+				{
+					throw new Exception($"Unhandled undefined variable: {name}");
+				}
 			}
 
-			public void Define(string name)
+			public void Handle(IdentifierScope scope, string name)
 			{
-				_definedVariables.Add(name);
+				_handle(scope, name, () => PassUp(scope, name));
 			}
 
 			public void Dispose()
