@@ -153,6 +153,7 @@ namespace Dlrsoft.VBScript.Parser
 				AddKeyword(Table, "Next", new Keyword(LanguageVersion.All, LanguageVersion.All, TokenType.Next));
 				AddKeyword(Table, "Not", new Keyword(LanguageVersion.All, LanguageVersion.All, TokenType.Not));
 				AddKeyword(Table, "Nothing", new Keyword(LanguageVersion.All, LanguageVersion.All, TokenType.Nothing));
+				AddKeyword(Table, "Null", new Keyword(LanguageVersion.All, LanguageVersion.All, TokenType.Nothing));
 				AddKeyword(Table, "NotInheritable", new Keyword(LanguageVersion.All, LanguageVersion.All, TokenType.NotInheritable));
 				AddKeyword(Table, "NotOverridable", new Keyword(LanguageVersion.All, LanguageVersion.All, TokenType.NotOverridable));
 				AddKeyword(Table, "Object", new Keyword(LanguageVersion.All, LanguageVersion.All, TokenType.Object));
