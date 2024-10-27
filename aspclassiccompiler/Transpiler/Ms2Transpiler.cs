@@ -54,6 +54,51 @@ namespace Transpiler
 				scope.Define("MS2", null);
 				scope.Define("headerModules", "Ms2Helper.HeaderModules");
 			}
+			else if (fullPath.EndsWith("\\functions\\sql_datatypes.asp", StringComparison.OrdinalIgnoreCase))
+			{
+				foreach (var name in new string[]{"adBoolean"
+				,"adSmallInt"
+				,"adInteger"
+				,"adTinyInt"
+				,"adUnsignedTinyInt"
+				,"adUnsignedSmallInt"
+				,"adUnsignedInt"
+				,"adBigInt"
+				,"adUnsignedBigInt"
+				,"adSingle"
+				,"adDouble"
+				,"adCurrency"
+				,"adDecimal"
+				,"adVarNumeric"
+				,"adDate"
+				,"adDBDate"
+				,"adDBTime"
+				,"adDBTimeStamp"
+				,"adFileTime"
+				,"adBSTR"
+				,"adChar"
+				,"adWChar"
+				,"adNumeric"
+				,"adUserDefined"
+				,"adPropVariant"
+				,"adVarChar"
+				,"adLongVarChar"
+				,"adVarWChar"
+				,"adLongVarWChar"
+				,"adBinary"
+				,"adVarBinary"
+				,"adLongVarBinary"
+				,"adEmpty"
+				,"adIDispatch"
+				,"adError"
+				,"adVariant"
+				,"adIUnknown"
+				,"adGUID"
+				,"adChapter"})
+				{
+					scope.Define(name, "Includes.functions.sql_datatypes." + name);
+				}
+			}
 			else if (fullPath.EndsWith("\\security.asp", StringComparison.OrdinalIgnoreCase))
 			{
 				HandleServerSideInclude(fullPath, output, scope, fromInclude, new[]
