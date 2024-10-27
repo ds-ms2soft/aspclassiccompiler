@@ -123,6 +123,7 @@ namespace Transpiler
 						classWriter.BaseClass = _includeBaseClassName;
 						classWriter.ClassName =
 							Path.GetFileNameWithoutExtension(new FileInfo(fullPath).Name); //Filename controls the case
+						classWriter.ClassName = classWriter.ClassName.Replace(".", "_");
 						var extraParamList = new List<IncludeFileConstructorParameter>(extraParams ?? Enumerable.Empty<IncludeFileConstructorParameter>());
 						transpiler.HandleServerSideInclude = (path, output2, scope2) =>
 						{
