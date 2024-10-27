@@ -391,21 +391,18 @@ namespace Transpiler
 			}
 			else
 			{
-				throw new NotImplementedException("Unimplemented loop, need an example");
-				/*
 				if (doBlock.EndStatement.IsWhile) //do ... loop while
 				{
-					_output.WriteCode("Do", true);
+					Output.WriteCode("Do", true);
 					outputBody();
-					_output.WriteCode($"Loop While {doBlock.Expression.Render(scope)}", true);
+					Output.WriteCode($"Loop While {doBlock.EndStatement.Expression.Render(scope)}", true);
 				}
 				else // do until ... loop
 				{
-					_output.WriteCode("Do", true);
+					Output.WriteCode("Do", true);
 					outputBody();
-					_output.WriteCode($"Until {doBlock.Expression.Render(scope)}", true);
+					Output.WriteCode($"Loop Until {doBlock.EndStatement.Expression.Render(scope)}", true);
 				}
-				*/
 			}
 		}
 
