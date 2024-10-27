@@ -122,10 +122,10 @@ namespace Transpiler
 			{
 				GenerateIfExpr(@if, scope);
 			}
-			//else if (expr is VB.LineIfStatement)
-			//{
-			//	return GenerateIfExpr((VB.LineIfStatement)expr, scope);
-			//}
+			else if (expr is VB.LineIfStatement lineIf)
+			{
+				GenerateIfExpr(lineIf, scope);
+			}
 			//else if (expr is VB.QualifiedExpression)
 			//{
 			//	return GenerateDottedExpr((VB.QualifiedExpression)expr, scope);
@@ -466,6 +466,19 @@ namespace Transpiler
 			Output.WriteCode($"End If", true);
 		}
 
+		public void GenerateIfExpr(VB.LineIfStatement ifstmt, IdentifierScope scope)
+		{
+			Output.WriteCode($"If {ifstmt.Expression.Render(scope)} Then", true);
+			Process(ifstmt.IfStatements, scope, false);
+			if (ifstmt.ElseStatements != null)
+			{
+				Output.WriteCode(" Else ", false);
+				Process(ifstmt.ElseStatements, scope, false);
+			}
+
+			Output.WriteCode(" End If", false);
+		}
+
 		private void GenerateOnErrorStatement(VB.OnErrorStatement onError)
 		{
 			switch (onError.OnErrorType)
@@ -541,9 +554,11 @@ namespace Transpiler
 					Output.WriteCode("Exit Sub", true);
 					break;
 				case Dlrsoft.VBScript.Parser.BlockType.Do:
+					Output.WriteCode("Exit Do", true);
+					break;
 				case Dlrsoft.VBScript.Parser.BlockType.For:
-				//	_output.WriteCode("Break", true);
-//					break;
+					Output.WriteCode("Exit For", true);
+					break;
 				default:
 					throw new NotImplementedException();
 			}
@@ -1030,31 +1045,6 @@ namespace Transpiler
 	//    return Expression.Call(mi, Expression
 	//                                   .NewArrayInit(typeof(object), args));
 	//}
-
-	public static Expression GenerateIfExpr(VB.LineIfStatement ifstmt, AnalysisScope scope)
-	{
-		Expression elseBlock = null;
-		if (ifstmt.ElseStatements != null)
-		{
-			elseBlock = GenerateBlockExpr(ifstmt.ElseStatements, scope);
-		}
-		else
-		{
-			elseBlock = Expression.Empty();
-		}
-
-		Expression test = WrapBooleanTest(GenerateExpr(ifstmt.Expression, scope));
-		Expression ifblock = GenerateBlockExpr(ifstmt.IfStatements, scope);
-
-		return Expression.Condition(
-				   test,
-				   ifblock,
-				   elseBlock,
-				   typeof(void));
-	}
-
-	
-	
 
 	public static Expression GenerateNewExpr(VB.NewExpression expr,
 											AnalysisScope scope)
