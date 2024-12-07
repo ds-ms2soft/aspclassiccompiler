@@ -240,7 +240,8 @@ namespace Transpiler
 		{
 			var output = MakeNewFileOutputPath(_outputFolderBase, filePath, ".Asp.Vbhtml", out _);
 
-			if (!IsOutputCurrent(filePath, output))
+			//TODO: for now, we'll just regenerate always, because I'm making changes on both sides.
+			//if (!IsOutputCurrent(filePath, output))
 			{
 				var transpiler = MakeGeneratorForFile();
 

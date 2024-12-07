@@ -39,7 +39,7 @@ namespace Transpiler
 
 		protected override void DefineScopeForIncludeFile(IdentifierScope includeScope)
 		{
-			foreach (var name in new[] { "Server", "Request", "Response", "Session", "Application", "OpenRecordSet" })
+			foreach (var name in new[] { "Server", "Request", "Response", "Session", "Application", "OpenRecordSet", "HasAccessToFeature", "ExecuteQuery" })
 			{
 				//Forwards to the page object.
 				includeScope.Define(name, "HostPage." + name);
@@ -92,11 +92,20 @@ namespace Transpiler
 					new IncludeFileConstructorParameter { Name = "rst", Type = "Object", DefaultIfMissing = "Nothing" }
 				});
 			}
+			else if (fullPath.EndsWith("\\fctFeatures.asp", StringComparison.OrdinalIgnoreCase))
+			{
+				//Ported, but I'll make this a helper class or something instead.
+			}
 			else if (fullPath.EndsWith("\\banner.asp", StringComparison.OrdinalIgnoreCase))
 			{
 				//I did some hacking to get it to transpile (global vars), and then I manually changed the class.
 				//var include = EnsureIncludeTranspiled(fullPath);
 				output.WriteCode($"New Includes.banner(Me, {(generator?.CompileTimeVariableValues?.TryGetValue("ShowOldBanner", out var v) == true ? v : "false")})", true);
+			}
+			else if (fullPath.EndsWith("\\ClassicSearchInterop.asp", StringComparison.OrdinalIgnoreCase))
+			{
+				output.WriteCode($"Dim classicSearchInterop = New Includes.ClassicSearchInterop(Me)", true);
+				scope.Define("GetSearchSql", "classicSearchInterop.GetSearchSql");
 			}
 			else
 			{

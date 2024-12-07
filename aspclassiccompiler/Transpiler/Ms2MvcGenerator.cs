@@ -47,6 +47,8 @@ namespace Transpiler
 			scope.Define("DataConn");
 			scope.Define("MM_CONN_STRING", "CustomViewPage.ConnectionString");
 			scope.Define("ExecuteWithSessionContext", "CustomViewPage.ExecuteWithSessionContext");
+			//Define page base methods / properties.
+			scope.Define("HasAccessToFeature");
 			scope.Define("ExecuteQuery");
 			foreach (var name in new string[]{"adBoolean"
 				         ,"adSmallInt"

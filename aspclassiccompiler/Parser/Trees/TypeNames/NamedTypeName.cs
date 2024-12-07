@@ -76,5 +76,10 @@ namespace Dlrsoft.VBScript.Parser
 		{
 			AddChild(childList, Name);
 		}
+
+		public override string ToString()
+		{
+			return Name.ToString();
+		}
 	}
 }

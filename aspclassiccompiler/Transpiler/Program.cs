@@ -68,7 +68,7 @@ namespace Transpiler
 
 		[TestCase("C:\\source\\TDMS\\TCDS.Web\\tdetail.asp")]
 		[TestCase("C:\\source\\TDMS\\TCDS.Web\\default.asp")]
-		public void ParseOne(string path)
+		public void TranspileOne(string path)
 		{
 			var service = BuildService();
 
