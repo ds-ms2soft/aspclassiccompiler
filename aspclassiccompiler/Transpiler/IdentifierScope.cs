@@ -27,7 +27,9 @@ namespace Transpiler
 			{ "Server", "Server" }, { "Request", "Request" }, { "Response", "Response" }, {"Session", "Session"},
 			{ "Application", "Application" }, { "Err", "Err" }, { "nErr", "nErr" }, 
 			{ "Now", "DateTime.Now" },
-			{"Timer", "DateAndTime.Timer"}
+			{"Timer", "DateAndTime.Timer"},
+			{"abs", "Math.Abs"},
+			{"round", "Math.Round"},
 		};
 
 		public IdentifierScope(IdentifierScope parentScope)
@@ -116,7 +118,7 @@ namespace Transpiler
 		{
 			foreach (var kvp in childScope._identifiers)
 			{
-				if (!GlobalIdentifiers.ContainsKey(kvp.Key))
+				if (!TryGetIdentifier(kvp.Key, out _))
 				{
 					Define(kvp.Key, $"{variableName}.{kvp.Value}");
 				}
