@@ -238,7 +238,7 @@ namespace Transpiler
 
 		public virtual void TranspileSingle(string filePath, TranspileUnit unit)
 		{
-			var output = MakeNewFileOutputPath(_outputFolderBase, filePath, ".Asp.Vbhtml", out _);
+			var output = MakeNewFileOutputPath(_outputFolderBase, filePath, ".asp.vbhtml", out _);
 
 			//TODO: for now, we'll just regenerate always, because I'm making changes on both sides.
 			//if (!IsOutputCurrent(filePath, output))
