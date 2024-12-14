@@ -209,23 +209,34 @@ namespace Transpiler
 		public int TranspileValidPages()
 		{
 			var count = 0;
-			foreach (var kvp in _unitsByPath.Where(kvp => !_includePagesByPath.Contains(kvp.Key) && !kvp.Value.HasErrors))
+			VisitAll((tuple) =>
 			{
-				var path = kvp.Key;
-				var unit = kvp.Value;
-				try
+				var (path, unit, isInclude) = tuple;
+				if (!isInclude && !unit.HasErrors)
 				{
-					TranspileSingle(path, unit);
-				}
-				catch (Exception ex)
-				{
-					throw new Exception($"Failed to transpile: {path}", ex);
+					try
+					{
+						TranspileSingle(path, unit);
+					}
+					catch (Exception ex)
+					{
+						throw new Exception($"Failed to transpile: {path}", ex);
+					}
+
+					count++;
 				}
 
-				count++;
-			}
-
+			});
 			return count;
+		}
+
+
+		public void VisitAll(Action<(string path, TranspileUnit unit, bool isInclude)> action)
+		{
+			foreach (var kvp in _unitsByPath)
+			{
+				action((kvp.Key, kvp.Value, _includePagesByPath.Contains(kvp.Key)));
+			}
 		}
 
 		public void TranspileSingle(string relativeFilePath)
