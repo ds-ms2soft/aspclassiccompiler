@@ -74,7 +74,7 @@ namespace Transpiler
 		{
 			_includePagesByPath = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 			
-			foreach (var unit in _unitsByPath.Values.Where(tu => !tu.HasErrors))
+			foreach (var unit in _unitsByPath.Values/*.Where(tu => !tu.HasErrors)*/) //We want to identify includes even from pages that have parse errors, if we can.
 			{
 				unit.Block.VisitAll<CallStatement>(exp =>
 				{
