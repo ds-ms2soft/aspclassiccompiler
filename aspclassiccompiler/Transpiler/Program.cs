@@ -17,7 +17,8 @@ namespace Transpiler
 		{
 			var service = new Ms2Transpiler();
 			service.IgnoreFile(new Regex("dynamic_array.asp$", RegexOptions.IgnoreCase))
-				.IgnoreFile(new Regex(@"Session\\MS2DotNetSession.asp", RegexOptions.IgnoreCase));
+				.IgnoreFile(new Regex(@"Session\\MS2DotNetSession.asp", RegexOptions.IgnoreCase))
+				.IgnoreFile(new Regex(@"\\obj\\", RegexOptions.IgnoreCase));
 			return service;
 		}
 		/*
