@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Transpiler
@@ -10,16 +12,19 @@ namespace Transpiler
 			Literal,
 			Code,
 			Functions,
-			SubOrFunctionBody
+			SubOrFunctionBody,
+			Disposing
 		}
 
-		public States CurrentState { get; private set; } = States.Literal;
+		private Stack<States> _state = new Stack<States>();
+		public States CurrentState => _state.Peek();
 
 		private readonly StreamWriter _underlying;
 
 		public RazorWriter(StreamWriter underlying)
 		{
 			_underlying = underlying;
+			_state.Push(States.Literal);
 		}
 
 		public override void WriteLiteral(string literal)
@@ -87,28 +92,34 @@ namespace Transpiler
 
 		private void TransitionToState(States newState)
 		{
-			if (newState != CurrentState)
+			var current = CurrentState;
+			if (newState != current)
 			{
 				//Close the current thing
-				switch (CurrentState)
+				switch (current)
 				{
 					case States.Literal:
+						_state.Pop();
 						break;
 					case States.Code:
 						_underlying.WriteLine(Environment.NewLine + "End Code");
+						_state.Pop();
 						break;
 					case States.Functions:
 						if (newState != States.SubOrFunctionBody)
 						{
 							_underlying.WriteLine(Environment.NewLine + "End Functions");
+							_state.Pop();
 						}
 						break;
 					case States.SubOrFunctionBody:
+						_state.Pop();
 						break;
 					default:
 						throw new ArgumentOutOfRangeException();
 				}
 
+				States? stateToSet = newState;
 				switch (newState)
 				{
 					case States.Literal:
@@ -118,26 +129,38 @@ namespace Transpiler
 						_codeIndentationLevel = 1;
 						break;
 					case States.Functions:
-						if (CurrentState != States.SubOrFunctionBody)
+						if (current != States.SubOrFunctionBody)
 						{
 							_underlying.Write("@Functions");
 						}
-
+						else
+						{
+							stateToSet = null;
+						}
 						_codeIndentationLevel = 1;
 						break;
 					case States.SubOrFunctionBody:
+						break;
+					case States.Disposing:
+						stateToSet = null;
 						break;
 					default:
 						throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
 				}
 
-				CurrentState = newState;
+				if (stateToSet != null)
+				{
+					_state.Push(stateToSet.Value);
+				}
 			}
 		}
 
 		public void Dispose()
 		{
-			TransitionToState(States.Literal); //This will close any block we are in.
+			while (_state.Count > 0)
+			{
+				TransitionToState(States.Disposing); //This will close any block we are in.
+			}
 			_underlying?.Dispose();
 		}
 	}
