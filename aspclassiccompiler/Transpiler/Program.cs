@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace Transpiler
@@ -48,6 +49,24 @@ namespace Transpiler
 			var count = service.TranspileValidPages();
 			Console.WriteLine($"{count} valid pages transpiled.");
 			Console.WriteLine($"Files with errors: {errorCount}");
+		}
+
+		[Test]
+		public void ListAllNonIncludePages()
+		{
+			var service = BuildService();
+
+			service.ParseAllFiles();
+			service.IdentifyIncludes();
+
+			service.VisitAll(tuple =>
+			{
+				var (path, unit, isInclude) = tuple;
+				if (!isInclude)
+				{
+					Console.WriteLine(",('" + path.Replace("C:\\source\\TDMS\\TCDS.Web\\", "/TCDS/").Replace("\\", "/") + "')");
+				}
+			});
 		}
 
 		[Test]
