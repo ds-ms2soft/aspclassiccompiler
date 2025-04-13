@@ -206,13 +206,15 @@ namespace Transpiler
 		/// <summary>
 		/// Transpiles any page that isn't an include and that parsed without error.
 		/// </summary>
-		public int TranspileValidPages()
+		public int TranspileValidPages(params string[] excludePaths)
 		{
+			var exclude = (excludePaths ?? []).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
 			var count = 0;
 			VisitAll((tuple) =>
 			{
 				var (path, unit, isInclude) = tuple;
-				if (!isInclude && !unit.HasErrors)
+				if (!isInclude && !unit.HasErrors && !exclude.Contains(path))
 				{
 					try
 					{

@@ -27,7 +27,10 @@ namespace Transpiler
 		 *
 		 * -Convert ADO commands to proxy objects
 		 * -security.vb /ref_path isn't properly being hoisted (asset_archive_delete.asp)");
+		 * Maybe identify all undefined variables and update all pages to use OPTION EXPLICIT
+		 * C:\source\TDMS\TCDS.Web\peakhour-data.asp is a pain because it uses variables from the page that includes it. Needs to be hoisted to inputs I guess, but it's TMC to I'm ignoring for now.
 		 */
+		//Left off here: Tdetail is ported, but can't be run. Wire up the route, and then start implementing the proxy methods? Also need to fix Server.CreateObject calls
 		[Test]
 		public void TranspileAll()
 		{
@@ -46,7 +49,7 @@ namespace Transpiler
 
 			service.IdentifyIncludes();
 
-			var count = service.TranspileValidPages();
+			var count = service.TranspileValidPages("C:\\source\\TDMS\\TCDS.Web\\peakhour.asp", @"C:\source\TDMS\TCDS.Web\rpt_peakhour.asp");
 			Console.WriteLine($"{count} valid pages transpiled.");
 			Console.WriteLine($"Files with errors: {errorCount}");
 		}
