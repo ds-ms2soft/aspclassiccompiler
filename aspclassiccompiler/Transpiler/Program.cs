@@ -49,7 +49,14 @@ namespace Transpiler
 
 			service.IdentifyIncludes();
 
-			var count = service.TranspileValidPages("C:\\source\\TDMS\\TCDS.Web\\peakhour.asp", @"C:\source\TDMS\TCDS.Web\rpt_peakhour.asp");
+			var count = service.TranspileValidPages("C:\\source\\TDMS\\TCDS.Web\\peakhour.asp", @"C:\source\TDMS\TCDS.Web\rpt_peakhour.asp"
+				,@"C:\source\TDMS\TCDS.Web\rpt_tdetail_signal.asp" //used 3 times in the past 18 months, by oakland only
+				, @"C:\source\TDMS\TCDS.Web\admin\f_docupload.asp" //uses upload.asp which is hard to port
+				, @"C:\source\TDMS\TCDS.Web\admin\f_importfileupload.asp" //uses upload.asp which is hard to port
+				, @"C:\source\TDMS\TCDS.Web\Admin\f_importfolder_parse.asp" //references a TMC file, used only 1 (by van for MORC), so likely dead.
+				, @"C:\source\TDMS\TCDS.Web\Admin\f_process_jamar.asp" //not used in 18 months
+				, @"C:\source\TDMS\TCDS.Web\Admin\f_tmcassigndetail.asp" //Skip TMC file.
+				);
 			Console.WriteLine($"{count} valid pages transpiled.");
 			Console.WriteLine($"Files with errors: {errorCount}");
 		}
@@ -91,6 +98,7 @@ namespace Transpiler
 
 		[TestCase("C:\\source\\TDMS\\TCDS.Web\\tdetail.asp")]
 		[TestCase("C:\\source\\TDMS\\TCDS.Web\\default.asp")]
+		[TestCase("C:\\source\\TDMS\\TCDS.Web\\tdetail_tcls.asp")]
 		public void TranspileOne(string path)
 		{
 			var service = BuildService();

@@ -44,6 +44,7 @@ namespace Transpiler
 				scope.Define(ported, "ClassicAspPort." + ported);
 			}
 			scope.Define("MS2", null);
+			scope.Define("Randomize", null);
 			scope.Define("DataConn");
 			scope.Define("MM_CONN_STRING", "CustomViewPage.ConnectionString");
 			scope.Define("ExecuteWithSessionContext", "CustomViewPage.ExecuteWithSessionContext");

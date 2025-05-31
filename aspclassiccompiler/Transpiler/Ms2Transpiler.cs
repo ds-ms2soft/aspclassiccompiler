@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Dlrsoft.VBScript.Parser;
+using Microsoft.Scripting.Runtime;
 
 namespace Transpiler
 {
@@ -44,6 +45,9 @@ namespace Transpiler
 				//Forwards to the page object.
 				includeScope.Define(name, "HostPage." + name);
 			}
+			includeScope.Define("OpenDataConnection", "OpenDataConnection"); //provided by base class
+			includeScope.Define("headerModules", "Ms2Helper.HeaderModules");
+			includeScope.Define("UserIdentity", "HostPage.Request.ServerVariables(\"AUTH_USER\")");
 			base.DefineScopeForIncludeFile(includeScope);
 		}
 
@@ -53,6 +57,7 @@ namespace Transpiler
 			{
 				scope.Define("MS2", null);
 				scope.Define("headerModules", "Ms2Helper.HeaderModules");
+				scope.Define("BugsnagKey", "Ms2Helper.BugsnagKey");
 			}
 			else if (fullPath.EndsWith("\\functions\\sql_datatypes.asp", StringComparison.OrdinalIgnoreCase))
 			{
@@ -67,14 +72,14 @@ namespace Transpiler
 					}
 				});
 			}
+			else if (fullPath.EndsWith("\\YepLogReader.asp", StringComparison.OrdinalIgnoreCase))
+			{
+				//porting this manually, as it's a class
+			}
 			else if (fullPath.EndsWith("\\_hack.asp", StringComparison.OrdinalIgnoreCase))
 			{
 				//Nothing I want to port
 			}
-			//else if (fullPath.EndsWith("\\session_context.asp", StringComparison.OrdinalIgnoreCase))
-			//{
-			//	//Just some global methods that we'll put in the page base class
-			//}
 			else if (fullPath.EndsWith("\\conn.asp", StringComparison.OrdinalIgnoreCase))
 			{
 				//Just some global methods that we'll put in the page base class
@@ -90,6 +95,37 @@ namespace Transpiler
 					new IncludeFileConstructorParameter { Name = "is_new", Type = "Boolean", DefaultIfMissing = "False" },
 					new IncludeFileConstructorParameter { Name = "is_edit", Type = "Boolean", DefaultIfMissing = "False" },
 					new IncludeFileConstructorParameter { Name = "rst", Type = "Object", DefaultIfMissing = "Nothing" }
+				});
+				scope.Define("IsFeatureEnabled", "_nav.IsFeatureEnabled");
+			}
+			else if (fullPath.EndsWith("\\signal_data.asp", StringComparison.OrdinalIgnoreCase))
+			{
+				HandleServerSideInclude(fullPath, output, scope, fromInclude, new[]
+				{
+					new IncludeFileConstructorParameter { Name = "this_agency_id", Type = "string"},
+				});
+			}
+			
+			else if (fullPath.EndsWith("\\f_process_jamar_out.asp", StringComparison.OrdinalIgnoreCase))
+			{
+				HandleServerSideInclude(fullPath, output, scope, fromInclude, new[]
+				{
+					new IncludeFileConstructorParameter { Name = "vol_interval", Type = "Integer"},
+					new IncludeFileConstructorParameter { Name = "arrVolTime", Type = "Object"},
+					new IncludeFileConstructorParameter { Name = "arrVolTotal", Type = "Object"},
+
+				});
+			}
+			else if (fullPath.EndsWith("\\signal_data_semcog.asp", StringComparison.OrdinalIgnoreCase) ||
+			         fullPath.EndsWith("\\signal_data_default.asp", StringComparison.OrdinalIgnoreCase))
+			{
+				HandleServerSideInclude(fullPath, output, scope, fromInclude, new[]
+				{
+					new IncludeFileConstructorParameter { Name = "arrNTRS", Type = "Object"},
+					new IncludeFileConstructorParameter { Name = "view_type", Type = "String"},
+					new IncludeFileConstructorParameter { Name = "arrIntDir", Type = "Object"},
+					new IncludeFileConstructorParameter { Name = "arrLocDir", Type = "Object"},
+
 				});
 			}
 			else if (fullPath.EndsWith("\\fctFeatures.asp", StringComparison.OrdinalIgnoreCase))
