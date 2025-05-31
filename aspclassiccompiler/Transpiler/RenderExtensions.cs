@@ -187,6 +187,8 @@ namespace Transpiler
 					return ">=";
 				case OperatorType.Modulus:
 					return "Mod";
+				case OperatorType.Power:
+					return "^";
 				default:
 					throw new ArgumentOutOfRangeException(nameof(@operator), @operator, null);
 			}

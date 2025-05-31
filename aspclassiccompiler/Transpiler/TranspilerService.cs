@@ -287,14 +287,9 @@ namespace Transpiler
 			}
 			initializer += ")";
 
-			if (fromInclude == null)
-			{
-				output.WriteCode($"Dim {variableName} = New {include.IncludeClassName}{initializer}", true);
-			}
-			else
-			{
-				fromInclude.AddIncludeVariable(variableName, include.IncludeClassName, extraParams);
-			}
+			output.WriteCode($"Dim {variableName} = New {include.IncludeClassName}{initializer}", true);
+			
+			
 			scope.MapToVariable(include.IncludeScope, variableName);
 		}
 
