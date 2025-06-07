@@ -466,25 +466,40 @@ namespace Transpiler
 			//We do this by temporarily replacing the output writer with a NullOutputWriter, so we are processing the code twice.
 			var realOutput = Output;
 			Output = new NullOutputWriter();
+			var tempDefinedVariables = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 			using (_ = realOutput.BeginBlock()) //Begin a block so we can write the Dim statements at the top of the method.
 			using (var handling = methodScope.WithVariableDefinitionHandling(
-				       (identifierScope, name, undefined, upScope) =>
+				       (identifierScope, varName, undefined, upScope) =>
 				       {
 					       if (undefined == IdentifierScope.UndefinedHandling.IsAssignStatement)
 					       {
-						       realOutput.WriteCode($"Dim {name}", true);
-						       identifierScope.Define(name);
-						       return true;
-							}
+						       if (Output.CodeIndentationLevel > 0) 
+						       {
+								   //Variable is first used in an assignment that is nested (in an if, for, etc.)
+								   //We want to define it at the top of the method instead
+								   realOutput.WriteCode($"Dim {varName}", true);
+						       }
+							   else
+							   {
+								   //Otherwise, we can define it inline, but in the "real" pass below.
+								   tempDefinedVariables.Add(varName); //define now, but remove later
+							   }
+						       identifierScope.Define(varName);
+							   return true;
+					       }
 					       else
 					       {
 						       return false;
 					       }
 				       }))
 			{
-				Process(method.Statements, methodScope, true);
+				Process(method.Statements, methodScope, false);
 			}
 			Output = realOutput; 
+			foreach (var varname in tempDefinedVariables)
+			{
+				methodScope.Undefine(varname); 
+			}
 			Process(method.Statements, methodScope, true);
 			Output.WriteCode($"End {keyword}", true);
 		}

@@ -166,6 +166,11 @@ namespace Transpiler
 				_onDispose();
 			}
 		}
+
+		public void Undefine(string varname)
+		{
+			_identifiers.Remove(varname);
+		}
 	}
 
 	public class IdentifierScopeWithBlock: IdentifierScope

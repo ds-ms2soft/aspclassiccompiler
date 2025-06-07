@@ -126,7 +126,7 @@ namespace Transpiler
 						break;
 					case States.Code:
 						_underlying.Write("@Code");
-						_codeIndentationLevel = 1;
+						CodeIndentationLevel = 1;
 						break;
 					case States.Functions:
 						if (current != States.SubOrFunctionBody)
@@ -137,7 +137,7 @@ namespace Transpiler
 						{
 							stateToSet = null;
 						}
-						_codeIndentationLevel = 1;
+						CodeIndentationLevel = 1;
 						break;
 					case States.SubOrFunctionBody:
 						break;

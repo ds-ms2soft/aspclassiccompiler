@@ -4,14 +4,14 @@ namespace Transpiler
 {
 	public abstract class OutputWriter
 	{
-		protected int _codeIndentationLevel = 0;
+		public int CodeIndentationLevel { get; protected set; }= 0;
 
 		public IDisposable BeginBlock()
 		{
 			return new Indenter(this);
 		}
 
-		protected string GetIndentation() => _codeIndentationLevel > 0 ? new string('\t', _codeIndentationLevel) : "";
+		protected string GetIndentation() => CodeIndentationLevel > 0 ? new string('\t', CodeIndentationLevel) : "";
 
 		public abstract void WriteLiteral(string text);
 		public abstract void WriteCode(string text, bool onNewLine);
@@ -23,12 +23,12 @@ namespace Transpiler
 			public Indenter(OutputWriter writer)
 			{
 				_writer = writer;
-				_writer._codeIndentationLevel++;
+				_writer.CodeIndentationLevel++;
 			}
 
 			public void Dispose()
 			{
-				_writer._codeIndentationLevel--;
+				_writer.CodeIndentationLevel--;
 			}
 		}
 	}
