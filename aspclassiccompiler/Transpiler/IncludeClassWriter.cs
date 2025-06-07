@@ -130,10 +130,6 @@ namespace Transpiler
 					_isInSubOrFunction = false;
 				}
 			}
-			else if (text.StartsWith("ReDim", StringComparison.OrdinalIgnoreCase))
-			{
-				_fields.Add("'TODO (is this needed): " + text); 
-			}
 			else if (text.StartsWith("Const", StringComparison.OrdinalIgnoreCase) ||
 			         text.StartsWith("Dim", StringComparison.OrdinalIgnoreCase))
 			{
