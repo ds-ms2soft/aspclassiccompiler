@@ -46,6 +46,10 @@ namespace Transpiler
 			scope.Define("MS2", null);
 			scope.Define("Randomize", null);
 			scope.Define("DataConn");
+			scope.Define("cos", "Math.Cos");
+			scope.Define("sin", "Math.Sin");
+			scope.Define("atn", "Math.Atan");
+			scope.Define("Sqr", "Math.Sqrt");
 			scope.Define("MM_CONN_STRING", "CustomViewPage.ConnectionString");
 			scope.Define("ExecuteWithSessionContext", "CustomViewPage.ExecuteWithSessionContext");
 			//Define page base methods / properties.
