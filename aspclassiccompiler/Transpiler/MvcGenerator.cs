@@ -15,7 +15,7 @@ namespace Transpiler
 
 		private IReadOnlyList<string> _literals;
 
-		public IdentifierScope Transpile(VB.ScriptBlock script, OutputWriter output, IReadOnlyList<string> literals, Action<IdentifierScope> defineExtraIdentifiers = null, Action<IdentifierScope, string> onUndefinedVariable = null)
+		public IdentifierScope Transpile(VB.ScriptBlock script, OutputWriter output, IReadOnlyList<string> literals, Action<IdentifierScope> defineExtraIdentifiers = null, Func<IdentifierScope, string, IdentifierScope.UndefinedHandling, bool> onUndefinedVariable = null)
 		{
 			_script = script;
 			Output = output;
@@ -26,8 +26,15 @@ namespace Transpiler
 			defineExtraIdentifiers?.Invoke(localScope);
 			AddSubAndMethodDeclarationsToScope(_script.Statements, localScope);
 			
-			onUndefinedVariable ??= ((scope, name) => throw new NotImplementedException($"Page level variable {name} is not defined"));
-			using var newVariables = localScope.WithVariableDefinitionHandling((scope, variable, _) => onUndefinedVariable(scope, variable));
+			onUndefinedVariable ??= ((scope, name, undefined) =>
+			{
+				if (undefined == IdentifierScope.UndefinedHandling.IsAssignStatement)
+				{
+					return false;
+				}
+				throw new NotImplementedException($"Page level variable {name} is not defined");
+			});
+			using var newVariables = localScope.WithVariableDefinitionHandling((scope, variable, undefined, _) => onUndefinedVariable(scope, variable, undefined));
 			Process(_script.Statements, localScope, false);
 			return localScope;
 		}
@@ -323,15 +330,19 @@ namespace Transpiler
 		{
 			bool isNewVariable = false;
 			string variable;
-			using (scope.WithVariableDefinitionHandling((identifierScope, variableName, fallback) =>
+			using (scope.WithVariableDefinitionHandling((identifierScope, variableName, undefined, fallback) =>
 			       {
-				       isNewVariable = true;
-				       identifierScope.Define(variableName);
+				       if (!fallback())
+				       {
+					       isNewVariable = true;
+					       identifierScope.Define(variableName);
+				       }
+				       return true;
 			       }))
 			{
 				variable =
 					expr.TargetExpression.Render(scope,
-						IdentifierScope.UndefinedHandling.AllowAndDefine); //Define because we are an assignment
+						IdentifierScope.UndefinedHandling.IsAssignStatement); //Define because we are an assignment
 			}
 
 			var value = expr.SourceExpression.Render(scope);
@@ -449,6 +460,31 @@ namespace Transpiler
 
 			var methodScope = new IdentifierScope(scope);
 			Output.WriteCode($"{keyword} {name}({method.Parameters.Render(methodScope)})", true);
+
+			//We want to capture any variables that are undefined, but first referenced in an assignment statement.
+			//Those we want to define at the top of the method, so we can use them in the method body.
+			//We do this by temporarily replacing the output writer with a NullOutputWriter, so we are processing the code twice.
+			var realOutput = Output;
+			Output = new NullOutputWriter();
+			using (_ = realOutput.BeginBlock()) //Begin a block so we can write the Dim statements at the top of the method.
+			using (var handling = methodScope.WithVariableDefinitionHandling(
+				       (identifierScope, name, undefined, upScope) =>
+				       {
+					       if (undefined == IdentifierScope.UndefinedHandling.IsAssignStatement)
+					       {
+						       realOutput.WriteCode($"Dim {name}", true);
+						       identifierScope.Define(name);
+						       return true;
+							}
+					       else
+					       {
+						       return false;
+					       }
+				       }))
+			{
+				Process(method.Statements, methodScope, true);
+			}
+			Output = realOutput; 
 			Process(method.Statements, methodScope, true);
 			Output.WriteCode($"End {keyword}", true);
 		}
@@ -586,6 +622,17 @@ namespace Transpiler
 			Process(forBlock.Statements, innerScope, true);
 
 			Output.WriteCode("Next", true);
+		}
+	}
+
+	internal class NullOutputWriter : OutputWriter
+	{
+		public override void WriteLiteral(string text)
+		{
+		}
+
+		public override void WriteCode(string text, bool onNewLine)
+		{
 		}
 	}
 	/*

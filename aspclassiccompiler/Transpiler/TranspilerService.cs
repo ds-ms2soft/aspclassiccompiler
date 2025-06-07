@@ -142,14 +142,22 @@ namespace Transpiler
 							{
 								includeScope.Define(param.Name, $"Me.{param.Name}");
 							}
-						}, (identifierScope, variable) =>
+						}, (identifierScope, variable, undefined) =>
 						{
-							extraParamList.Add(new IncludeFileConstructorParameter()
+							if (undefined == IdentifierScope.UndefinedHandling.IsAssignStatement)
 							{
-								Name = variable,
-								Type = "Object",
-							});
-							identifierScope.Define(variable, $"Me.{variable}");
+								return false; 
+							}
+							else
+							{
+								extraParamList.Add(new IncludeFileConstructorParameter()
+								{
+									Name = variable,
+									Type = "Object",
+								});
+								identifierScope.Define(variable, $"Me.{variable}");
+								return true;
+							}
 						});
 
 						foreach (var param in extraParamList)

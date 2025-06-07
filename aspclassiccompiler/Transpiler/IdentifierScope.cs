@@ -13,7 +13,8 @@ namespace Transpiler
 		{
 			Throw = 0,
 			Ignore = 1,
-			AllowAndDefine = 2
+			AllowAndDefine = 2,
+			IsAssignStatement = 3
 		}
 
 		public IdentifierScope ParentScope { get; }
@@ -92,7 +93,7 @@ namespace Transpiler
 					}
 					else if (_onUndefinedVariable != null)
 					{
-						_onUndefinedVariable?.Handle(this, name);
+						_onUndefinedVariable?.Handle(this, name, undefined);
 						rv = _identifiers.TryGetValue(name, out found);
 					}
 					else if (undefined == UndefinedHandling.AllowAndDefine)
@@ -128,7 +129,8 @@ namespace Transpiler
 		public bool TryGetIdentifier(string paramName, out string scopedName)
 			=> GetIdentifier(paramName, UndefinedHandling.Ignore, out scopedName);
 
-		public VariableDefinitionHandling WithVariableDefinitionHandling(Action<IdentifierScope, string, Action> handle)
+		public delegate bool HandleVariableDefinition(IdentifierScope scope, string name, UndefinedHandling undefined, Func<bool> handleUpScope);
+		public VariableDefinitionHandling WithVariableDefinitionHandling(HandleVariableDefinition handle)
 		{
 			var old = _onUndefinedVariable;
 			return _onUndefinedVariable = new VariableDefinitionHandling(handle, old, () => _onUndefinedVariable = old);
@@ -138,32 +140,25 @@ namespace Transpiler
 
 		public class VariableDefinitionHandling : IDisposable
 		{
-			private readonly Action<IdentifierScope, string, Action> _handle;
+			private readonly HandleVariableDefinition _handle;
 			private readonly VariableDefinitionHandling _prior;
 			private readonly Action _onDispose;
 
-			public VariableDefinitionHandling(Action<IdentifierScope, string, Action> handle, VariableDefinitionHandling prior, Action onDispose)
+			public VariableDefinitionHandling(HandleVariableDefinition handle, VariableDefinitionHandling prior, Action onDispose)
 			{
 				_handle = handle;
 				_prior = prior;
 				_onDispose = onDispose;
 			}
 
-			private void PassUp(IdentifierScope scope, string name)
+			private bool PassUp(IdentifierScope scope, string name, UndefinedHandling undefined)
 			{
-				if (_prior != null)
-				{
-					_prior.Handle(scope, name);
-				}
-				else
-				{
-					throw new Exception($"Unhandled undefined variable: {name}");
-				}
+				return _prior != null && _prior.Handle(scope, name, undefined);
 			}
 
-			public void Handle(IdentifierScope scope, string name)
+			public bool Handle(IdentifierScope scope, string name, UndefinedHandling undefined)
 			{
-				_handle(scope, name, () => PassUp(scope, name));
+				return _handle(scope, name, undefined, () => PassUp(scope, name, undefined));
 			}
 
 			public void Dispose()
