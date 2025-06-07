@@ -105,7 +105,13 @@ namespace Transpiler
 					new IncludeFileConstructorParameter { Name = "this_agency_id", Type = "string"},
 				});
 			}
-			
+			else if (fullPath.EndsWith("\\top.asp", StringComparison.OrdinalIgnoreCase))
+			{
+				HandleServerSideInclude(fullPath, output, scope, fromInclude, new[]
+				{
+					new IncludeFileConstructorParameter { Name = "ref_path", Type = "string"},
+				});
+			}
 			else if (fullPath.EndsWith("\\f_process_jamar_out.asp", StringComparison.OrdinalIgnoreCase))
 			{
 				HandleServerSideInclude(fullPath, output, scope, fromInclude, new[]
@@ -136,7 +142,7 @@ namespace Transpiler
 			{
 				//I did some hacking to get it to transpile (global vars), and then I manually changed the class.
 				//var include = EnsureIncludeTranspiled(fullPath);
-				output.WriteCode($"New Includes.banner(Me, {(generator?.CompileTimeVariableValues?.TryGetValue("ShowOldBanner", out var v) == true ? v : "false")})", true);
+				output.WriteCode($"Dim Banner = New Includes.banner({(fromInclude != null ? "HostPage" :"Me")}, {(generator?.CompileTimeVariableValues?.TryGetValue("ShowOldBanner", out var v) == true ? v : "false")})", true);
 			}
 			else if (fullPath.EndsWith("\\ClassicSearchInterop.asp", StringComparison.OrdinalIgnoreCase))
 			{
