@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace Transpiler
 {
@@ -20,6 +21,7 @@ namespace Transpiler
 		public States CurrentState => _state.Peek();
 
 		private readonly StreamWriter _underlying;
+		private string _lastLiteral;
 
 		public RazorWriter(StreamWriter underlying)
 		{
@@ -30,6 +32,7 @@ namespace Transpiler
 		public override void WriteLiteral(string literal)
 		{
 			TransitionToState(States.Literal);
+			_lastLiteral = literal;
 			_underlying.Write(literal);
 		}
 
@@ -90,6 +93,7 @@ namespace Transpiler
 			}
 		}
 
+		private Regex _literalEndsWithNonAlpha = new Regex("[^A-Za-z0-9]$");
 		private void TransitionToState(States newState)
 		{
 			var current = CurrentState;
@@ -125,6 +129,14 @@ namespace Transpiler
 					case States.Literal:
 						break;
 					case States.Code:
+						if (current == States.Literal)
+						{
+							//Do we need to add white space?
+							if (_lastLiteral != null && !_literalEndsWithNonAlpha.IsMatch(_lastLiteral))
+							{
+								_underlying.Write(" ");
+							}
+						}
 						_underlying.Write("@Code");
 						CodeIndentationLevel = 1;
 						break;
