@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Dlrsoft.VBScript.Parser;
+using Microsoft.Scripting;
 using Microsoft.Scripting.Runtime;
 
 namespace Transpiler
@@ -71,6 +72,16 @@ namespace Transpiler
 						StaticValue = generator?.CompileTimeVariableValues.TryGetValue("ref_path", out var ref_path) == true ? ref_path : null
 					}
 				});
+			}
+			else if (fullPath.EndsWith("\\tnotesfiles.asp", StringComparison.OrdinalIgnoreCase))
+			{
+				HandleServerSideInclude(fullPath, output, scope, fromInclude, new[]
+				{
+					new IncludeFileConstructorParameter { Name = "ref_path", Type = "string", DefaultIfMissing = "\"\"",
+						StaticValue = generator?.CompileTimeVariableValues.TryGetValue("ref_path", out var ref_path) == true ? ref_path : null
+					}
+				});
+				
 			}
 			else if (fullPath.EndsWith("\\YepLogReader.asp", StringComparison.OrdinalIgnoreCase))
 			{
@@ -147,7 +158,7 @@ namespace Transpiler
 			else if (fullPath.EndsWith("\\ClassicSearchInterop.asp", StringComparison.OrdinalIgnoreCase))
 			{
 				output.WriteCode($"Dim classicSearchInterop = New Includes.ClassicSearchInterop(Me)", true);
-				scope.Define("GetSearchSql", "classicSearchInterop.GetSearchSql");
+				scope.Define("GetOrCreateTcdsLocationSetId", "classicSearchInterop.GetOrCreateTcdsLocationSetId");
 			}
 			else
 			{

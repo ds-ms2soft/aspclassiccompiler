@@ -39,7 +39,7 @@ namespace Transpiler
 				scope.Define(name);
 			}
 
-			foreach (var ported in new[] { "Array", "IsNull", "Minute", "Hour" })
+			foreach (var ported in new[] { "Array", "IsNull", "Minute", "Hour", "IsEmpty" })
 			{
 				scope.Define(ported, "ClassicAspPort." + ported);
 			}
